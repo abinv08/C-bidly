@@ -166,8 +166,19 @@ nav {
   /* position: fixed; */
   width: 100%;
   z-index: 1000;
+  margin-left: 15em;
+  margin-top: -1em;
 }
-
+.navigationbard{
+  width:36rem;
+  margin-top:1.5em;
+}
+.navigationbardimg{
+  width:90rem;
+  display: flex;
+  justify-content: flex-end; /* Moves content to the right */
+  align-items: center;
+}
 .nav-links {
   display: flex;
   gap: 2rem;
@@ -199,12 +210,13 @@ nav {
 .logo {
   font-size: 7em;
   color: darkgreen;
-  margin-bottom: 1rem;
+  margin-bottom: 0rem;
 }
 
 .tagline {
+  margin-top: 2em;
   font-size: 1.2rem;
-  margin-bottom:1em;
+  margin-bottom:0em;
   color: black;
 }
 
@@ -228,7 +240,7 @@ nav {
 .main-heading {
   color: #2b5329;
   font-size: 2.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 1rem;
 }
 
 .cards-container {
@@ -283,6 +295,7 @@ nav {
 }
 .pricemaindiv{
   height: 100%;
+  width: 100%;
 }
 
 .container {
@@ -376,6 +389,7 @@ h1 {
 }
 
 .center-content {
+ 
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -383,9 +397,10 @@ h1 {
 }
 
 .cardamom-image {
+  background-image: url(./OIP.jpg);
   width: 100%;
-  max-width: 400px;
-  height: auto;
+  max-width: 300px;
+  height:350px ;
   border-radius: 1rem;
   margin-bottom: 1rem;
 }
@@ -434,4 +449,85 @@ h1 {
 }
 .Hmaindiv{
   height: 100%;
+  margin-top: -3em;
+}
+.reset-password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 350px;
+  height:250px;
+  margin-left:-3.7em;
+
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal-content button {
+  padding: 10px 20px;
+  margin: 10px 0;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-content div {
+  /* width: 90px;
+  margin-left:90em; */
+  padding: 10px 20px;
+  margin: 10px 0;
+  background-color: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 8em;
+  margin-left: 5.7em;
+}
+
+
+.modal-content button:hover {
+  background-color: #0056b3;
+}
+.modal-content h2{
+  font-weight: bolder;
+}
+.verify-btn{
+  padding: 10px 20px;
+  margin: 10px 0;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.resend-btn{
+  padding: 10px 20px;
+  margin: 10px 0;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

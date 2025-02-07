@@ -6,7 +6,7 @@ import { doc, setDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { auth, firestore } from './Firebase';
 
-const Signup = () => {
+const Sign = () => {
   const navigate = useNavigate();
 
   const googleLogin = async () => {
@@ -32,6 +32,7 @@ const Signup = () => {
   const [phone, setPhone] = useState('');
   const [pass, setPass] = useState('');
 
+  
   const phoneRegex = /^[789]\d{9}$/;  // Regex to validate Indian phone number (starts with 7, 8, or 9 and has 10 digits)
 
   const handlePhoneChange = (e) => {
@@ -82,6 +83,7 @@ const Signup = () => {
       const errorMessage = error.message;
       if (errorCode === 'auth/email-already-in-use') {
         toast.error('Email already in use');
+        alert('Email already in use')
       } else if (errorCode === 'auth/weak-password') {
         toast.error('Password is too weak');
       } else {
@@ -111,11 +113,13 @@ const Signup = () => {
           required
         />
         <input
-          type="text"
+          type="number"
           className="input"
           value={phone}
           placeholder="Phone No:"
           onChange={handlePhoneChange}
+          // onMouseOver={alert("Indian number only")}
+          // onChange={(e) => setPhone(e.target.value)}
           required
         />
         <input
@@ -146,10 +150,12 @@ const Signup = () => {
             width="1em"
             xmlns="http://www.w3.org/2000/svg"
           >
+            {/* Google icon SVG paths remain the same */}
             <path
               fill="#FFC107"
               d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24 c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
             ></path>
+            {/* Rest of the SVG paths */}
           </svg>
           <span>Sign up with Google</span>
         </div>
@@ -158,4 +164,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Sign;

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './index.css';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'; // Ensure correct imports
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth'; // Ensure correct imports
 import { auth } from './Firebase'; // Ensure Firebase is initialized correctly
 import { toast } from 'react-toastify';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
+  const [emailForReset, setEmailForReset] = useState(''); // To store email for reset
+  const [resetModal, setResetModal] = useState(false); // State to control reset modal visibility
   const navigate = useNavigate();
 
   // Google Login function
@@ -27,7 +29,7 @@ const LoginForm = () => {
         position: 'top-center',
       });
 
-      // Navigate to Pricesm page
+      // Navigate to Homes page
       navigate('/Homes');
     } catch (error) {
       console.error('Error signing in with Google:', error);
@@ -46,11 +48,11 @@ const LoginForm = () => {
         toast.success("Login Successful", {
           position: "top-center",
         });
-        navigate("/Homes");  // Navigate to the Pricesm page after successful login
+        navigate("/Homes");  // Navigate to the Homes page after successful login
       }
     } catch (error) {
       const errorCode = error.code;
-      let errorMessage = "Login failed. incorrect password Please try again."; // Default error message
+      let errorMessage = "Login failed. Incorrect password. Please try again."; // Default error message
 
       // Handling specific error codes
       if (errorCode === "auth/user-not-found") {
@@ -61,10 +63,35 @@ const LoginForm = () => {
         errorMessage = "The email address is not valid.";
       }
 
-      // toast.error(errorMessage, {
-      //   position: "top-center",
-      // });
       alert(errorMessage);
+    }
+  };
+
+  // Handle the forgot password functionality
+  const handleForgotPassword = async () => {
+    if (!emailForReset) {
+      alert("Please enter your email address.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, emailForReset);
+      toast.success("Password reset email sent. Check your inbox.", {
+        position: "top-center",
+      });
+      setResetModal(false); // Close the modal
+    } catch (error) {
+      const errorCode = error.code;
+      let errorMessage = "Error resetting password. Please try again later.";
+
+      // Handle specific errors
+      if (errorCode === "auth/user-not-found") {
+        errorMessage = "No user found with this email address.";
+      }
+
+      toast.error(errorMessage, {
+        position: "top-center",
+      });
     }
   };
 
@@ -89,7 +116,7 @@ const LoginForm = () => {
           onChange={(e) => setPass(e.target.value)}
           required
         />
-        <p className="page-link">
+        <p className="page-link" onClick={() => setResetModal(true)}>
           <span className="page-link-label">Forgot Password?</span>
         </p>
         <button type="submit" className="form-btn" onClick={handleLogin}>
@@ -98,7 +125,7 @@ const LoginForm = () => {
       </form>
       <p className="sign-up-label">
         Don't have an account?{' '}
-        <Link to="/Signup" className="sign-up-link">
+        <Link to="/Sign" className="sign-up-link">
           Sign up
         </Link>
       </p>
@@ -137,6 +164,24 @@ const LoginForm = () => {
           <span>Log in with Google</span>
         </div>
       </div>
+
+      {/* Reset Password Modal */}
+      {resetModal && (
+        <div className="reset-password-modal">
+          <div className="modal-content">
+            <h2>Reset Password</h2>
+            <input
+              type="email"
+              className="input"
+              placeholder="Enter your email"
+              value={emailForReset}
+              onChange={(e) => setEmailForReset(e.target.value)}
+            />
+            <button  onClick={handleForgotPassword}>Send Reset Email</button>
+            <div onClick={() => setResetModal(false)}>Cancel</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

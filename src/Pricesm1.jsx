@@ -1,74 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { auth, firestore } from './Firebase'; 
-import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { auth } from './Firebase'; // Make sure auth is exported correctly from Firebase.js
+import { onAuthStateChanged, signOut } from 'firebase/auth'; // Import signOut for logout functionality
+// import { useNavigate } from 'react-router-dom'; // Import useNavigate for redirection
+import { Link, useNavigate } from 'react-router-dom';
 
-const Pricesm= () => {
-  const [user, setUser] = useState(null);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const navigate = useNavigate();
-  const auth = getAuth();
+const Pricesm = () => {
+  const [user, setUser] = useState(null); // To store user info
+  const navigate = useNavigate(); // Hook to handle redirection
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    // Listen for auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
+        // User is signed in
         setUser(currentUser);
-
-        // Check if email is verified
-        if (currentUser.emailVerified) {
-          try {
-            // Update Firestore user document to mark email as verified
-            const userRef = doc(firestore, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-              emailVerified: true
-            });
-            
-            setIsEmailVerified(true);
-          } catch (error) {
-            console.error("Error updating user verification status:", error);
-          }
-        } else {
-          // If email is not verified, redirect to verification page
-          toast.error("Please verify your email before accessing this page", {
-            position: "top-center",
-          });
-          navigate("/VerifyEmail", { 
-            state: { 
-              email: currentUser.email,
-              uid: currentUser.uid 
-            } 
-          });
-        }
       } else {
         // No user is signed in
-        navigate('/LoginForm');
+        setUser(null);
       }
     });
 
     // Clean up the listener when the component unmounts
     return () => unsubscribe();
-  }, [auth, navigate]);
+  }, []);
 
   // Logout function
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      navigate('/Home');
+      await signOut(auth); // Sign out the user
+      navigate('/Home'); // Redirect to login page after logout
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
 
-  // Only render the full content if user is verified
-  if (!isEmailVerified) {
-    return null; // or a loading spinner
-  }
-
   return (
-<>
+    <>
       <div className="pricemaindiv">
         <div className='navigationbardimg'>
           {/* <a href="#">Home</a>
@@ -163,8 +130,5 @@ const Pricesm= () => {
     </>
   );
 };
-      
-        
-  
 
 export default Pricesm;

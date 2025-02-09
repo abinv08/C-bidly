@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, reload, sendEmailVerification } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
+import { firestore } from './Firebase';
 
 const VerifyEmail = () => {
   const location = useLocation();
@@ -11,59 +13,66 @@ const VerifyEmail = () => {
   const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
-    // Get email from navigation state
-    if (location.state && location.state.email) {
+    if (location.state?.email) {
       setEmail(location.state.email);
     } else {
-      // Redirect if no email is found
       navigate('/Sign');
     }
   }, [location, navigate]);
 
   const checkVerification = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) {
+      toast.error("No user found. Please try signing up again.");
+      navigate('/Sign');
+      return;
+    }
 
     try {
       await reload(auth.currentUser);
       
       if (auth.currentUser.emailVerified) {
-        toast.success("Email verified successfully!", {
-          position: "top-center",
+        // Update user document to remove temporary flag and confirm verification
+        const userRef = doc(firestore, 'users', auth.currentUser.uid);
+        await updateDoc(userRef, {
+          emailVerified: true,
+          tempData: false // Remove temporary flag
         });
-        navigate('/Pricesm');
+
+        toast.success("Email verified successfully!");
+        navigate('/Homes');
       } else {
-        toast.error("Email not yet verified. Please check your inbox.", {
-          position: "top-center",
-        });
+        toast.error("Email not yet verified. Please check your inbox.");
       }
     } catch (error) {
       console.error("Error checking verification:", error);
-      toast.error("An error occurred while checking verification");
+      toast.error("Error checking verification status");
     }
   };
 
   const resendVerificationEmail = async () => {
-    if (!auth.currentUser) return;
+    if (!auth.currentUser) {
+      toast.error("No user found. Please try signing up again.");
+      return;
+    }
+
+    if (countdown > 0) return;
 
     try {
       await sendEmailVerification(auth.currentUser);
-      toast.info("Verification email resent!", {
-        position: "top-center",
-      });
+      toast.info("Verification email resent!");
       
-      // Start 60-second cooldown
       setCountdown(60);
       const timer = setInterval(() => {
-        setCountdown((prevCountdown) => {
-          if (prevCountdown <= 1) {
+        setCountdown((prev) => {
+          if (prev <= 1) {
             clearInterval(timer);
             return 0;
           }
-          return prevCountdown - 1;
+          return prev - 1;
         });
       }, 1000);
     } catch (error) {
-      console.error("Error resending verification email:", error);
+      console.error("Error resending verification:", error);
       toast.error("Failed to resend verification email");
     }
   };

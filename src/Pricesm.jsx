@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import ProfilePhoto from './assets/ProfilePhoto.png';
 
 const Pricesm= () => {
   const [user, setUser] = useState(null);
@@ -70,19 +71,23 @@ const Pricesm= () => {
   return (
 <>
       <div className="pricemaindiv">
-        <div className='navigationbardimg'>
-          {/* <a href="#">Home</a>
-          <a href="#">Prices</a>
-          <a href="#">Auction</a>
-          <a href="#">Contact Us</a>
-          <a href="#">About Us</a> */}
-
+       
+        <nav className="navigationbard">
+        <div className="flex gap-8">
+        <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
+          <Link to="/Pricesm"><span className="text-gray-600  font-medium">Prices</span></Link>
+          <Link to="/AuctionPage"><span className="text-gray-600 ">Auction</span></Link>
+          <span className="text-gray-600">Contact Us</span>
+          <span className="text-gray-600">About Us</span>
+        </div>
+         <div className='navigationbardimg'>
           {/* Show the user's profile image and name if they are logged in */}
           {user ? (
             <>
               <img onClick={handleLogout} 
                 className="userimage"
-                src={user.photoURL} // User's photo URL from Firebase
+                src={ProfilePhoto}
+                // src={user.photoURL} // User's photo URL from Firebase
                 alt="user photo"
                 // width={"15%"}
                 // style={{ borderRadius: "100%", cursor: "pointer" }} // Add cursor pointer to indicate clickable
@@ -94,19 +99,6 @@ const Pricesm= () => {
             <p className="username">Guest</p> // If the user is not logged in, show "Guest"
           )}
         </div>
-        <nav className="navigationbard">
-        <div className="flex gap-8">
-        <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
-          <Link to="/Pricesm"><span className="text-gray-600  font-medium">Prices</span></Link>
-          <Link to="/AuctionPage"><span className="text-gray-600 ">Auction</span></Link>
-          <span className="text-gray-600">Contact Us</span>
-          <span className="text-gray-600">About Us</span>
-        </div>
-        {/* <div className="cursor-pointer">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        </div> */}
       </nav>
 
         <div className="container">
@@ -126,10 +118,10 @@ const Pricesm= () => {
               </div>
               <div style={{ textAlign: 'left', marginBottom: '1rem' }}>11-Jan-2024</div>
               <div className="price-box">
-                <div className="price-label">Max Price</div>
-                <div className="price-value">₹3000</div>
+                <div className="price-label" >Max Price</div>
+                <div className="price-value" id="SMaxprice">₹3000</div>
                 <div className="price-label">Min Price</div>
-                <div className="price-value">₹2000</div>
+                <div className="price-value" id="SMinprice">₹2000</div>
                 <div className="price-note">Daily Auction Price Of Small/Green Cardamom</div>
               </div>
             </div>

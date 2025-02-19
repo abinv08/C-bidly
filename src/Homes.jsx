@@ -8,7 +8,7 @@ const Homes = () => {
     <nav className="navigationbard">
         <div className="flex gap-8">
           <Link to="/Homes"><span className="text-gray-600 font-medium font-color:green">Home</span></Link>
-          <Link to="/Pricesm"><span className="text-gray-600">Prices</span></Link>
+          <Link to="/Pricesm1"><span className="text-gray-600">Prices</span></Link>
           <Link to="/AuctionPage"><span className="text-gray-600 ">Auction</span></Link>
           <span className="text-gray-600">Contact Us</span>
           <span className="text-gray-600">About Us</span>
@@ -40,7 +40,7 @@ const Homes = () => {
             <p>Auction</p>
           {/* </div> */}
           </Link>
-         <Link to="/Pricesm" className="card">
+         <Link to="/Pricesm1" className="card">
             <h3>Cardamom</h3>
             <p>Price Today</p>
           </Link>

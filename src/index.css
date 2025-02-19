@@ -170,14 +170,15 @@ nav {
   margin-top: -1em;
 }
 .navigationbard{
-  width:36rem;
-  margin-top:1.5em;
+  width:78rem;
+  margin-top:1.0em;
 }
 .navigationbardimg{
   width:90rem;
   display: flex;
   justify-content: flex-end; /* Moves content to the right */
   align-items: center;
+  /* margin-left: 90rem; */
 }
 .nav-links {
   display: flex;
@@ -530,4 +531,11 @@ h1 {
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+.text-gray-600{
+  width:5rem;
+}
+.navigationbardauc{
+  width:38rem;
+  margin-top:1.0em;
 }

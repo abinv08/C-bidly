@@ -1,29 +1,14 @@
 import React, { useState } from 'react';
-// import { 
-//   Edit,
-//   Save,
-//   Plus,
-//   Trash,
-//   Search,
-//   RefreshCcw,
-//   AlertCircle,
-//   CheckCircle,
-//   Calendar,
-//   Package,
-//   DollarSign,
-//   Users
-// } from 'lucide-react';
-// import {
-//   Card,
-//   CardContent,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
+import { FaPlus, FaBox, FaDollarSign, FaUsers, FaEdit, FaTrash } from 'react-icons/fa';  // Importing the Plus icon
+import { Card, CardContent, CardHeader } from '@mui/material';
+import Calendar from 'react-calendar';  // Assuming react-calendar is installed
+import { useNavigate } from 'react-router-dom';
+
 
 const AuctionAdminDashboard = () => {
   const [selectedAuction, setSelectedAuction] = useState(null);
   
-  // Sample auction data - In production, this would come from your backend
+  // Sample auction data
   const [auctions, setAuctions] = useState([
     {
       id: 1,
@@ -63,28 +48,34 @@ const AuctionAdminDashboard = () => {
     setIsEditing(false);
     setEditingAuction(null);
   };
+  const navigate = useNavigate();  // Hook for programmatic navigation
 
+  const handleNewAuctionClick = () => {
+    // Navigate to the "Add Auction" page
+    navigate('/AuctionAdd');
+  };
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 p-8 min-w-[78rem]">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
-        <div>
+        {/* <div>
           <h1 className="text-2xl font-bold text-gray-900">Auction Management</h1>
           <p className="text-gray-600">Manage live cardamom auctions</p>
-        </div>
+        </div> */}
         <div className="flex gap-4">
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700">
-            <Plus size={20} />
+          <button onClick={handleNewAuctionClick} className="px-4 py-2 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700">
+            <FaPlus size={20} />  {/* Using the imported FaPlus icon */}
             New Auction
           </button>
         </div>
       </div>
-
+      {/* The rest of your code */}
+      
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="flex items-center p-4">
-            <Calendar className="w-8 h-8 text-blue-500 mr-3" />
+            {/* <Calendar className="w-8 h-8 text-blue-500 mr-3" /> */}
             <div>
               <p className="text-sm text-gray-600">Active Auctions</p>
               <p className="text-xl font-bold">3</p>
@@ -93,7 +84,7 @@ const AuctionAdminDashboard = () => {
         </Card>
         <Card>
           <CardContent className="flex items-center p-4">
-            <Package className="w-8 h-8 text-green-500 mr-3" />
+            <FaBox className="w-8 h-8 text-green-500 mr-3" />
             <div>
               <p className="text-sm text-gray-600">Total Lots Today</p>
               <p className="text-xl font-bold">302</p>
@@ -102,7 +93,7 @@ const AuctionAdminDashboard = () => {
         </Card>
         <Card>
           <CardContent className="flex items-center p-4">
-            <DollarSign className="w-8 h-8 text-yellow-500 mr-3" />
+            <FaDollarSign className="w-8 h-8 text-yellow-500 mr-3" />
             <div>
               <p className="text-sm text-gray-600">Average Price</p>
               <p className="text-xl font-bold">₹3,200</p>
@@ -111,7 +102,7 @@ const AuctionAdminDashboard = () => {
         </Card>
         <Card>
           <CardContent className="flex items-center p-4">
-            <Users className="w-8 h-8 text-purple-500 mr-3" />
+            <FaUsers className="w-8 h-8 text-purple-500 mr-3" />
             <div>
               <p className="text-sm text-gray-600">Total Participants</p>
               <p className="text-xl font-bold">54</p>
@@ -123,7 +114,7 @@ const AuctionAdminDashboard = () => {
       {/* Main Content */}
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle>Current Auctions</CardTitle>
+          <CardHeader>Current Auctions</CardHeader>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -156,10 +147,10 @@ const AuctionAdminDashboard = () => {
                           onClick={() => handleEdit(auction)}
                           className="p-1 hover:bg-gray-100 rounded"
                         >
-                          <Edit size={16} />
+                          <FaEdit size={16} />
                         </button>
                         <button className="p-1 hover:bg-gray-100 rounded text-red-500">
-                          <Trash size={16} />
+                          <FaTrash size={16} />
                         </button>
                       </div>
                     </td>
@@ -176,7 +167,7 @@ const AuctionAdminDashboard = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <Card className="w-full max-w-2xl">
             <CardHeader>
-              <CardTitle>Edit Auction Details</CardTitle>
+              <CardHeader>Edit Auction Details</CardHeader>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">

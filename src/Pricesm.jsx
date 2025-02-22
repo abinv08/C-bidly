@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProfilePhoto from './assets/ProfilePhoto.png';
+import ProfilePopup from './ProfilePopup';
 
 const Pricesm= () => {
   const [user, setUser] = useState(null);
@@ -54,14 +55,14 @@ const Pricesm= () => {
   }, [auth, navigate]);
 
   // Logout function
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/Home');
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
+  // const handleLogout = async () => {
+  //   try {
+  //     await signOut(auth);
+  //     // navigate('/Home');
+  //   } catch (error) {
+  //     console.error("Error during logout:", error);
+  //   }
+  // };
 
   // Only render the full content if user is verified
   if (!isEmailVerified) {
@@ -81,7 +82,7 @@ const Pricesm= () => {
           <span className="text-gray-600">About Us</span>
         </div>
          <div className='navigationbardimg'>
-          {/* Show the user's profile image and name if they are logged in */}
+          {/* Show the user's profile image and name if they are logged in
           {user ? (
             <>
               <img onClick={handleLogout} 
@@ -94,10 +95,13 @@ const Pricesm= () => {
                 // Handle click to logout
               />
               <p className="username">{user.displayName}</p> {/* User's name from Firebase */}
-            </>
+            {/* </>
           ) : (
             <p className="username">Guest</p> // If the user is not logged in, show "Guest"
-          )}
+          )} */} 
+          <div className="flex justify-end p-4">
+               <ProfilePopup onLogout={handleLogout} />
+           </div>
         </div>
       </nav>
 

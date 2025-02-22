@@ -1,35 +1,31 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './index.css';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth'; // Ensure correct imports
-import { auth } from './Firebase'; // Ensure Firebase is initialized correctly
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from './Firebase';
 import { toast } from 'react-toastify';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [pass, setPass] = useState('');
-  const [emailForReset, setEmailForReset] = useState(''); // To store email for reset
-  const [resetModal, setResetModal] = useState(false); // State to control reset modal visibility
+  const [emailForReset, setEmailForReset] = useState('');
+  const [resetModal, setResetModal] = useState(false);
   const navigate = useNavigate();
 
-  // Google Login function
   const googleLogin = async () => {
-    const provider = new GoogleAuthProvider(); // Initialize the GoogleAuthProvider
+    const provider = new GoogleAuthProvider();
 
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Store user info in sessionStorage or localStorage (optional)
       sessionStorage.setItem('userName', user.displayName);
       sessionStorage.setItem('userPhoto', user.photoURL);
 
-      // Show success toast message
       toast.success('Logged in successfully!', {
         position: 'top-center',
       });
 
-      // Navigate to Homes page
       navigate('/Homes');
     } catch (error) {
       console.error('Error signing in with Google:', error);
@@ -39,22 +35,34 @@ const LoginForm = () => {
     }
   };
 
-  // Handle email/password login with error handling
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Check for admin credentials
+    if (email.toLowerCase() === 'admin' && pass === '12345678') {
+      toast.success("Admin Login Successful", {
+        position: "top-center",
+      });
+      // Store admin status in session if needed
+      sessionStorage.setItem('isAdmin', 'true');
+      navigate("/AdminDashboard");
+      return;
+    }
+
+    // Regular user authentication
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       if (userCredential) {
         toast.success("Login Successful", {
           position: "top-center",
         });
-        navigate("/Homes");  // Navigate to the Homes page after successful login
+        sessionStorage.setItem('isAdmin', 'false');
+        navigate("/Homes");
       }
     } catch (error) {
       const errorCode = error.code;
-      let errorMessage = "Login failed. Incorrect password. Please try again."; // Default error message
+      let errorMessage = "Login failed. Incorrect password. Please try again.";
 
-      // Handling specific error codes
       if (errorCode === "auth/user-not-found") {
         errorMessage = "No user found with this email address.";
       } else if (errorCode === "auth/wrong-password") {
@@ -63,14 +71,18 @@ const LoginForm = () => {
         errorMessage = "The email address is not valid.";
       }
 
-      alert(errorMessage);
+      toast.error(errorMessage, {
+        position: "top-center",
+      });
+      alert(errorMessage)
     }
   };
 
-  // Handle the forgot password functionality
   const handleForgotPassword = async () => {
     if (!emailForReset) {
-      alert("Please enter your email address.");
+      toast.error("Please enter your email address.", {
+        position: "top-center",
+      });
       return;
     }
 
@@ -79,12 +91,11 @@ const LoginForm = () => {
       toast.success("Password reset email sent. Check your inbox.", {
         position: "top-center",
       });
-      setResetModal(false); // Close the modal
+      setResetModal(false);
     } catch (error) {
       const errorCode = error.code;
       let errorMessage = "Error resetting password. Please try again later.";
 
-      // Handle specific errors
       if (errorCode === "auth/user-not-found") {
         errorMessage = "No user found with this email address.";
       }
@@ -164,8 +175,7 @@ const LoginForm = () => {
           <span>Log in with Google</span>
         </div>
       </div>
-
-      {/* Reset Password Modal */}
+      
       {resetModal && (
         <div className="reset-password-modal">
           <div className="modal-content">
@@ -177,7 +187,7 @@ const LoginForm = () => {
               value={emailForReset}
               onChange={(e) => setEmailForReset(e.target.value)}
             />
-            <button  onClick={handleForgotPassword}>Send Reset Email</button>
+            <button onClick={handleForgotPassword}>Send Reset Email</button>
             <div onClick={() => setResetModal(false)}>Cancel</div>
           </div>
         </div>

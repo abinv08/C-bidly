@@ -94,6 +94,7 @@ const Sign = () => {
       toast.error(errorMessage, {
         position: "top-center",
       });
+      alert(errorMessage)
     }
   };
 

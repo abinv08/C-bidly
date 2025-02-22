@@ -172,6 +172,7 @@ nav {
 .navigationbard{
   width:78rem;
   margin-top:1.0em;
+  margin-left: 6rem;
 }
 .navigationbardimg{
   width:90rem;
@@ -205,7 +206,7 @@ nav {
   justify-content: center;
   padding: 0 5%;
   color: white;
-  margin-top: 5em;
+  /* margin-top: 5em; */
 }
 
 .logo {
@@ -236,6 +237,7 @@ nav {
 .content {
   padding: 4rem 5%;
   background: white;
+  margin-top: -3rem;
 }
 
 .main-heading {
@@ -250,13 +252,13 @@ nav {
   flex-wrap: wrap;
 }
 
-.card {
+.card-p {
   flex: 1;
   min-width: 250px;
-  background: #2b5329;
+  background: #1a3419;
   padding: 2rem;
   border-radius: 10px;
-  color: white;
+  /* color: rgb(255, 255, 255); */
   text-align: center;
   cursor: pointer;
   transition: transform 0.3s;
@@ -441,8 +443,8 @@ h1 {
 @tailwind utilities;
 
 .userimage{
-  width: 60px;
-  height: 60px;
+  width: 45px;
+  height: 45px;
 
 }
 .priceheader{
@@ -471,7 +473,7 @@ h1 {
   text-align: center;
   width: 350px;
   height:250px;
-  margin-left:-3.7em;
+  margin-right:3.8em;
 
 }
 
@@ -536,6 +538,12 @@ h1 {
   width:5rem;
 }
 .navigationbardauc{
-  width:38rem;
+  /* width:38rem; */
+  margin-left: -3rem;
   margin-top:1.0em;
+  background-color: rgba(255, 255, 255, 0);
+}
+.navgationdivs{
+  /* max-width: 7-rem; */
+  width: 350px;
 }

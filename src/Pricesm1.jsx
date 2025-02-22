@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import ProfilePhoto from './assets/ProfilePhoto.png';
+import ProfilePopup from './ProfilePopup';
 
 const Pricesm1 = () => {
   const [user, setUser] = useState(null);
@@ -108,41 +109,39 @@ const Pricesm1 = () => {
      
       
       <nav className="navigationbard">
-        <div className="flex gap-8">
-          <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
-          <Link to="/Pricesm"><span className="text-gray-600 font-medium">Prices</span></Link>
-          <Link to="/AuctionPage"><span className="text-gray-600">Auction</span></Link>
-          <span className="text-gray-600">Contact Us</span>
-          <span className="text-gray-600">About Us</span>
-        </div>
-        <div className='navigationbardimg'>
+       
+        {/* <div className='navigationbardimg'> */}
           {/* Show the user's profile image and name if they are logged in */}
-          {user ? (
+          {/* {user ? (
             <>
               <img onClick={handleLogout} 
                 className="userimage"
-                src={ProfilePhoto}
-                // src={user.photoURL} // User's photo URL from Firebase
+                src={ProfilePhoto} */}
+                {/* // src={user.photoURL} // User's photo URL from Firebase
                 alt="user photo"
                 // width={"15%"}
                 // style={{ borderRadius: "100%", cursor: "pointer" }} // Add cursor pointer to indicate clickable
                 // Handle click to logout
-              />
-              <p className="username">{user.displayName}</p> {/* User's name from Firebase */}
+              /> */}
+              {/* <p className="username">{user.displayName}</p> {/* User's name from Firebase 
             </>
           ) : (
             <p className="username">Guest</p> // If the user is not logged in, show "Guest"
-          )}
-        </div>
+          )} */}
+          {/* <div className="flex justify-end p-4"> */}
+               
+           {/* </div> */}
+        {/* </div> */}
+        <ProfilePopup onLogout={handleLogout} />
       </nav>
 
       <div className="container">
         <h1 className='priceheader'>Live Cardamom Price</h1>
 
-        <div className="toggle-container">
+        {/* <div className="toggle-container">
           <Link to="/Pricesm"><button className="toggle-btn active">Small Cardamom</button></Link>
           <Link to="/Pricela"><button className="toggle-btn">Large Cardamom</button></Link>
-        </div>
+        </div> */}
 
         {isLoading ? (
           <div className="text-center py-4">Loading prices...</div>

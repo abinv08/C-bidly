@@ -1,24 +1,34 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
+import ProfilePopup from './ProfilePopup';
 
 const Card = ({ children, className = '' }) => (
     <div className={`bg-white rounded-xl border border-gray-200 ${className}`}>
       {children}
     </div>
 );
+const handleLogout = async () => {
+  try {
+    await signOut(auth);
+    navigate('/Home');
+  } catch (error) {
+    console.error("Error during logout:", error);
+  }
+};
 const AuctionPage = () => {
   return (
     <>
     <div className="max-w-6xl mx-auto p-6 bg-gray-50">
       {/* Header */}
       <nav className="navigationbardauc">
-        <div className="flex gap-8">
+        {/* <div className="flex gap-8">
           <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
           <Link to="/Pricesm"><span className="text-gray-600 ">Prices</span></Link>
           <Link to="/AuctionPage"><span className="text-gray-600 font-medium">Auction</span></Link>
           <span className="text-gray-600">Contact Us</span>
           <span className="text-gray-600">About Us</span>
-        </div>
+        </div> */}
+        <ProfilePopup onLogout={handleLogout} />
       </nav>
 
       <h1 className="text-4xl font-bold text-center mb-8">Live Cardamom Auction</h1>

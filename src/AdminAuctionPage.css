@@ -1,0 +1,197 @@
+/* AdminAuctionPage.css */
+.auction-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.auction-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.info-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.info-card label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.info-card input {
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  width: 100%;
+  padding: 5px 0;
+}
+
+.info-card input:focus {
+  outline: none;
+}
+
+/* Special styling for cards with green text */
+.info-card:nth-child(4) input {
+  color: #2E7D32;
+  font-weight: bold;
+}
+
+/* Lots information section */
+.lots-info {
+  grid-column: span 2;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.lots-header {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.lots-header div {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lots-header input {
+  border: none;
+  font-weight: bold;
+  width: 60px;
+  padding: 5px;
+}
+
+.current-price {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.current-price label {
+  font-size: 14px;
+}
+
+.current-price input {
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2E7D32;
+  width: 120px;
+}
+
+/* Lot details section */
+.lot-details {
+  grid-column: span 2;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.detail-row label {
+  font-size: 14px;
+  color: #666;
+}
+
+.detail-row input {
+  border: none;
+  font-size: 14px;
+  font-weight: bold;
+  width: 100px;
+  text-align: right;
+}
+
+/* Buy Now button */
+.buy-now {
+  background: #1B5E20;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 15px 0;
+}
+
+/* Auctioneer information */
+.auctioneer-info {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.auctioneer-info label {
+  font-size: 14px;
+  color: #666;
+}
+
+.auctioneer-info input {
+  border: none;
+  font-size: 14px;
+  flex-grow: 1;
+  color: #1B5E20;
+}
+
+/* Remove default input styling */
+input {
+  background: transparent;
+}
+
+input:focus {
+  outline: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .auction-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .lots-info,
+  .lot-details {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .lots-info,
+  .lot-details {
+    grid-column: 1;
+  }
+}

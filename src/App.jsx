@@ -13,8 +13,15 @@ import Otpv from './Otpv'
 import VerifyEmail from './VerifyEmail'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import AuctionPage from './AuctionPage'
-import AuctionAdminDashboard from './AuctionAdminDashboard'
+import DashboardPage from './DashboardPage'
+import CardamomAuctionForm from './CardamomAuctionForm'
+import AuctionAdminDashboard from './DashboardPage'
 // import AdminDashboard from './AdminDashboard'
+import AuctionAdd from './AuctionAdd'
+import AdminAuctionPage from './AdminAuctionPage'
+import PriceInputForm from './PriceInputForm'
+import ProfilePopup from './ProfilePopup'
+import AprovalPanel from './AprovalPanel'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -32,11 +39,20 @@ function App() {
             <Route path='/Pricesm' Component={Pricesm}></Route>
             <Route path='/Pricela' Component={Pricela}></Route>
             <Route path='/AuctionPage' Component={AuctionPage}></Route>
+            <Route path='/DashboardPage' Component={DashboardPage}></Route>
             <Route path='/Otpv' Component={Otpv}></Route>
             <Route path='/VerifyEmail' Component={VerifyEmail}></Route>
+            {/* <Route path='/AdminDashboard' Component={AdminDashboard}></Route> */}
+            <Route path='/CardamomAuctionForm' Component={CardamomAuctionForm}></Route>
+            <Route path='/AdminAuctionPage' Component={AuctionAdminDashboard}></Route>
+            <Route path='/AuctionAdd' Component={AuctionAdd}></Route> 
+            <Route path='/PriceInputForm' Component={PriceInputForm}></Route> 
+            <Route path='/ProfilePopup' Component={ProfilePopup}></Route> 
+            <Route path='/AprovalPanel' Component={AprovalPanel}></Route> 
           </Routes>
         </Router>
-        
+     
+
     </>
   )
 }

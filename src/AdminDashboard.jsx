@@ -1,163 +1,236 @@
 import React, { useState } from 'react';
-// import { 
-//   Bell, 
-//   Users, 
-//   ShoppingCart, 
-//   DollarSign, 
-//   AlertTriangle,
-//   ChevronDown,
-//   Search,
-//   MoreVertical,
-//   Ban,
-//   Check
-// } from 'lucide-react';
-// import {
-//   Card,
-//   CardContent,
-//   CardDescription,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import './AdminDashboard.css';
+
+// Import icons from lucide-react
+import { 
+  Users, Sprout, ShoppingCart, 
+  MessageSquare, Settings, LogOut, 
+  Menu, BarChart2, Search
+} from 'lucide-react';
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('overview');
-  
-  // Sample data - In real app, this would come from your backend
-  const recentAuctions = [
-    { id: 1, seller: "Farmer Kumar", item: "Premium Cardamom", amount: "₹45,000", status: "Completed" },
-    { id: 2, seller: "Farmer Rajan", item: "Grade A Cardamom", amount: "₹38,000", status: "In Progress" },
-    { id: 3, seller: "Farmer Suresh", item: "Organic Cardamom", amount: "₹52,000", status: "Pending" }
-  ];
+  const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeSection, setActiveSection] = useState('dashboard');
 
-  const pendingUsers = [
-    { id: 1, name: "Anand K", type: "Farmer", status: "Pending", location: "Idukki" },
-    { id: 2, name: "Rajesh M", type: "Trader", status: "Pending", location: "Wayanad" }
-  ];
-
-  const statsData = [
-    { title: "Total Users", value: "2,846", icon: Users },
-    { title: "Active Auctions", value: "124", icon: ShoppingCart },
-    { title: "Daily Revenue", value: "₹8.5L", icon: DollarSign },
-    { title: "Pending Approvals", value: "18", icon: AlertTriangle }
-  ];
+  // Sample data - replace with actual data from your backend
+  const dashboardData = {
+    totalUsers: 1524,
+    activeFarmers: 856,
+    activeBuyers: 668,
+    pendingApprovals: 23,
+    recentTransactions: [
+      { id: 1, farmer: 'John Smith', buyer: 'Green Grocers', product: 'Organic Tomatoes', amount: 1250, status: 'completed' },
+      { id: 2, farmer: 'Maria Garcia', buyer: 'Fresh Markets', product: 'Sweet Corn', amount: 880, status: 'pending' },
+      // Add more transactions
+    ],
+    recentUsers: [
+      { id: 1, name: 'Alice Johnson', type: 'Farmer', status: 'active', joinDate: '2025-01-10' },
+      { id: 2, name: 'Bob Wilson', type: 'Buyer', status: 'pending', joinDate: '2025-01-12' },
+      // Add more users
+    ]
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        {/* <div>
-          <h1 className="text-2xl font-bold text-gray-900">C-Bidly Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your cardamom trading platform</p>
-        </div> */}
-        {/* <div className="flex items-center gap-4">
-          <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-            <Bell size={20} />
+    <div className="farmily-admin-container">
+      {/* Sidebar */}
+      <aside className={`farmily-admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className="farmily-admin-sidebar-header">
+          <Link to="/" className="farmily-admin-logo">
+            {isSidebarCollapsed ? 'F' : 'Farmily'}
+          </Link>
+          <button 
+            className="farmily-admin-sidebar-toggle"
+            onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
+          >
+            <Menu size={20} />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
-              A
-            </div> */}
-            <ChevronDown size={16} />
-          </div>
         </div>
-    //   </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statsData.map((stat, index) => (
-          <Card key={index}>
-            <CardContent className="flex items-center p-6">
-              <div className="p-2 rounded-lg bg-blue-100 mr-4">
-                {React.createElement(stat.icon, { size: 24, className: "text-blue-600" })}
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">{stat.title}</p>
-                <h3 className="text-2xl font-bold">{stat.value}</h3>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+        <nav className="farmily-admin-nav">
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveSection('dashboard')}
+          >
+            <BarChart2 size={20} />
+            {!isSidebarCollapsed && <span>Dashboard</span>}
+          </button>
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'farmers' ? 'active' : ''}`}
+            onClick={() => setActiveSection('farmers')}
+          >
+            <Sprout size={20} />
+            {!isSidebarCollapsed && <span>Farmers</span>}
+          </button>
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'buyers' ? 'active' : ''}`}
+            onClick={() => setActiveSection('buyers')}
+          >
+            <ShoppingCart size={20} />
+            {!isSidebarCollapsed && <span>Buyers</span>}
+          </button>
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveSection('users')}
+          >
+            <Users size={20} />
+            {!isSidebarCollapsed && <span>Users</span>}
+          </button>
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'messages' ? 'active' : ''}`}
+            onClick={() => setActiveSection('messages')}
+          >
+            <MessageSquare size={20} />
+            {!isSidebarCollapsed && <span>Messages</span>}
+          </button>
+          <button 
+            className={`farmily-admin-nav-item ${activeSection === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveSection('settings')}
+          >
+            <Settings size={20} />
+            {!isSidebarCollapsed && <span>Settings</span>}
+          </button>
+        </nav>
+
+        <button className="farmily-admin-logout">
+          <LogOut size={20} />
+          {!isSidebarCollapsed && <span>Logout</span>}
+        </button>
+      </aside>
 
       {/* Main Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Auctions */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Auctions</CardTitle>
-            <CardDescription>Monitor ongoing and completed auctions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
+      <main className="farmily-admin-main">
+        {/* Header */}
+        <header className="farmily-admin-header">
+          <div className="farmily-admin-search">
+            <Search size={20} />
+            <input type="text" placeholder="Search..." />
+          </div>
+          <div className="farmily-admin-profile">
+            <img 
+              src="/api/placeholder/32/32" 
+              alt="Admin" 
+              className="farmily-admin-avatar" 
+            />
+            <span className="farmily-admin-name">Admin Name</span>
+          </div>
+        </header>
+
+        {/* Dashboard Content */}
+        <div className="farmily-admin-content">
+          {/* Stats Cards */}
+          <div className="farmily-admin-stats">
+            <div className="farmily-admin-stat-card">
+              <div className="farmily-admin-stat-icon users">
+                <Users size={24} />
+              </div>
+              <div className="farmily-admin-stat-info">
+                <h3>Total Users</h3>
+                <p>{dashboardData.totalUsers}</p>
+              </div>
+            </div>
+            <div className="farmily-admin-stat-card">
+              <div className="farmily-admin-stat-icon farmers">
+                <Sprout size={24} />
+              </div>
+              <div className="farmily-admin-stat-info">
+                <h3>Active Farmers</h3>
+                <p>{dashboardData.activeFarmers}</p>
+              </div>
+            </div>
+            <div className="farmily-admin-stat-card">
+              <div className="farmily-admin-stat-icon buyers">
+                <ShoppingCart size={24} />
+              </div>
+              <div className="farmily-admin-stat-info">
+                <h3>Active Buyers</h3>
+                <p>{dashboardData.activeBuyers}</p>
+              </div>
+            </div>
+            <div className="farmily-admin-stat-card">
+              <div className="farmily-admin-stat-icon pending">
+                <MessageSquare size={24} />
+              </div>
+              <div className="farmily-admin-stat-info">
+                <h3>Pending Approvals</h3>
+                <p>{dashboardData.pendingApprovals}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          <div className="farmily-admin-card">
+            <h2>Recent Transactions</h2>
+            <div className="farmily-admin-table-container">
+              <table className="farmily-admin-table">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">Seller</th>
-                    <th className="text-left py-3 px-4">Item</th>
-                    <th className="text-left py-3 px-4">Amount</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Actions</th>
+                  <tr>
+                    <th>Farmer</th>
+                    <th>Buyer</th>
+                    <th>Product</th>
+                    <th>Amount</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recentAuctions.map((auction) => (
-                    <tr key={auction.id} className="border-b">
-                      <td className="py-3 px-4">{auction.seller}</td>
-                      <td className="py-3 px-4">{auction.item}</td>
-                      <td className="py-3 px-4">{auction.amount}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          auction.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                          auction.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {auction.status}
+                  {dashboardData.recentTransactions.map(transaction => (
+                    <tr key={transaction.id}>
+                      <td>{transaction.farmer}</td>
+                      <td>{transaction.buyer}</td>
+                      <td>{transaction.product}</td>
+                      <td>${transaction.amount}</td>
+                      <td>
+                        <span className={`farmily-admin-status ${transaction.status}`}>
+                          {transaction.status}
                         </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button className="text-gray-600 hover:text-gray-900">
-                          <MoreVertical size={16} />
-                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Pending Approvals */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Approvals</CardTitle>
-            <CardDescription>New user registration requests</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {pendingUsers.map((user) => (
-                <div key={user.id} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-medium">{user.name}</h4>
-                      <p className="text-sm text-gray-600">{user.type} • {user.location}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <button className="p-1 rounded-full text-red-600 hover:bg-red-50">
-                        <Ban size={16} />
-                      </button>
-                      <button className="p-1 rounded-full text-green-600 hover:bg-green-50">
-                        <Check size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          {/* Recent Users */}
+          <div className="farmily-admin-card">
+            <h2>Recent Users</h2>
+            <div className="farmily-admin-table-container">
+              <table className="farmily-admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Join Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboardData.recentUsers.map(user => (
+                    <tr key={user.id}>
+                      <td>{user.name}</td>
+                      <td>{user.type}</td>
+                      <td>
+                        <span className={`farmily-admin-status ${user.status}`}>
+                          {user.status}
+                        </span>
+                      </td>
+                      <td>{user.joinDate}</td>
+                      <td>
+                        <div className="farmily-admin-actions">
+                          <button className="farmily-admin-action-btn edit">Edit</button>
+                          <button className="farmily-admin-action-btn delete">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    // </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 };
 

@@ -1,94 +1,72 @@
 import React, { useState } from 'react';
 
-const PriceInputForm = () => {
-  const [amount1, setAmount1] = useState('2');
-  const [amount2, setAmount2] = useState('5');
-  const [amount3, setAmount3] = useState('Enter Amount');
-  const [currentPrice, setCurrentPrice] = useState('3500');
+const PriceEntryForm = () => {
+  const [currentPrice, setCurrentPrice] = useState(3500);
+  const [enteredAmount, setEnteredAmount] = useState('');
+  const [totalPrice, setTotalPrice] = useState(currentPrice);
+  const [activeButton, setActiveButton] = useState(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Submitted:', { amount1, amount2, currentPrice });
-    // Add your submission logic here
+  const handleAmountChange = (e) => {
+    const amount = e.target.value;
+    if (amount === '' || /^\d+$/.test(amount)) {
+      setEnteredAmount(amount);
+      setTotalPrice(amount ? currentPrice + parseInt(amount) : currentPrice);
+      setActiveButton(null);
+    }
+  };
+
+  const handlePresetClick = (value) => {
+    setActiveButton(value);
+    setEnteredAmount('');
+    setTotalPrice(currentPrice + value);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <form 
-        onSubmit={handleSubmit}
-        className="w-64 bg-green-500 p-4 rounded-lg shadow-lg"
-      >
-        {/* Current Price Display */}
-        <div className="mb-4">
-          <label className="block text-white text-sm mb-1">
-            Current Price:
-          </label>
-          <div className="bg-white p-2 rounded">
-            <input
-              type="text"
-              value={`₹${currentPrice}`}
-              onChange={(e) => setCurrentPrice(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full text-xl font-bold text-gray-700 outline-none"
-              readOnly
-            />
+    <div className="flex justify-center items-center min-h-screen bg-gray-100/10">
+      <div className="bg-[#8AB861] p-6 rounded-lg shadow-lg w-72">
+        <div className="bg-white rounded-lg p-3 mb-4">
+          <div className="text-sm text-gray-600">Current Price:</div>
+          <div className="text-2xl font-bold text-green-800">
+            ₹{currentPrice}
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-white text-sm mb-1">
-            Current Price:
-          </label>
-          <div className="bg-white p-2 rounded">
-            <input
-              type="text"
-              value={`₹${currentPrice + 5}`}
-              onChange={(e) => setCurrentPrice(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full text-xl font-bold text-gray-700 outline-none"
-              readOnly
-            />
+        <div className="bg-white rounded-lg p-3 mb-4">
+          <div className="text-sm text-gray-600">Entered Price:</div>
+          <div className="text-2xl font-bold text-green-800">
+            ₹{totalPrice}
           </div>
         </div>
 
-        {/* Amount Inputs */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <input
-            type="text"
-            value={amount1}
-            onChange={(e) => setAmount1(e.target.value.replace(/[^0-9]/g, ''))}
-            className="bg-white p-2 rounded text-center text-xl font-bold text-gray-700 outline-none"
-          />
-          <input
-            type="text"
-            value={amount2}
-            onChange={(e) => setAmount2(e.target.value.replace(/[^0-9]/g, ''))}
-            className="bg-white p-2 rounded text-center text-xl font-bold text-gray-700 outline-none"
-          />
+        <div className="flex gap-4 mb-4">
+          <button
+             onClick={() => handlePresetClick(2)}
+             className={`flex-1 p-3 rounded-lg text-center transition-colors
+              ${activeButton === 2 ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-100'} 
+               text-2xl font-bold text-green-800`}>  2
+          </button>
+          <button
+           onClick={() => handlePresetClick(5)}
+            className={`flex-1 p-3 rounded-lg text-center transition-colors 
+            ${activeButton === 5 ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-100'} 
+            text-2xl font-bold text-green-800`}> 5
+          </button>
         </div>
-
-        {/* Enter amount text */}
-        <div className="text-center mb-4">
-          <span className="text-white text-sm">Enter amount</span>
-          <input
-            type="text"
-            value={amount3}
-            onChange={(e) => setAmount3(e.target.value.replace(/[^0-9]/g, ''))}
-            className="bg-white p-2 rounded text-center text-xl font-bold text-gray-700 outline-none max-w-[10em]"
-
-          />
-        </div>
-
-        {/* Buy Now Button */}
+        <input
+          type="text"
+          value={enteredAmount}
+          onChange={handleAmountChange}
+          placeholder="Enter Amount"
+          className="w-full p-3 rounded-lg mb-4 border border-gray-300 focus:outline-none focus:border-blue-500"
+        />
         <button
-          type="submit"
-          className="w-full bg-green-800 text-white py-2 px-4 rounded 
-                   hover:bg-green-900 transition-colors duration-200 
-                   font-semibold text-lg"
-        >
+          className="w-full bg-green-800 text-white p-3 rounded-lg hover:bg-green-900 transition-colors"
+         >
           BUY NOW
         </button>
-      </form>
+      </div>
     </div>
   );
 };
 
-export default PriceInputForm;
+export default PriceEntryForm;

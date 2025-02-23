@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import LoginForm from "./LoginForm"
-import Signup from './Signup'
+// import Signup from './Signup'
 import Sign from './Sign'
 import Home from './Home'
 import Homes from './Homes'
@@ -9,6 +9,7 @@ import Pricesm1 from './Pricesm1'
 import Pricesm from './Pricesm'
 import Pricela from './Pricela'
 import Auction from './AuctionPage'
+import SAuctionPage from './SAuctionPage'
 import Otpv from './Otpv'
 import VerifyEmail from './VerifyEmail'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -22,6 +23,8 @@ import AdminAuctionPage from './AdminAuctionPage'
 import PriceInputForm from './PriceInputForm'
 import ProfilePopup from './ProfilePopup'
 import AprovalPanel from './AprovalPanel'
+import SellerInputForm from './SellerInputForm'
+import PendingApproval from './PendingApproval'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -31,7 +34,7 @@ function App() {
       <Router>
           <Routes>
             <Route path='/LoginForm' Component={LoginForm}></Route>
-            <Route path='/Signup' Component={Signup}></Route>
+            {/* <Route path='/Signup' Component={Signup}></Route> */}
             <Route path='/Sign' Component={Sign}></Route>
             <Route path='/Home' Component={Home}></Route>
             <Route path='/Homes' Component={Homes}></Route>
@@ -49,6 +52,9 @@ function App() {
             <Route path='/PriceInputForm' Component={PriceInputForm}></Route> 
             <Route path='/ProfilePopup' Component={ProfilePopup}></Route> 
             <Route path='/AprovalPanel' Component={AprovalPanel}></Route> 
+            <Route path='/SAuctionPage' Component={SAuctionPage}></Route>
+            <Route path='/SellerInputForm' Component={SellerInputForm}></Route>
+            <Route path='/PendingApproval' Component={PendingApproval}></Route>
           </Routes>
         </Router>
      

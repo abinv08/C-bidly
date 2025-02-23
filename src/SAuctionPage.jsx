@@ -15,61 +15,78 @@ const Card = ({ children, className = '' }) => (
 
 
 
-const AuctionPage = () => {
-  const navigate = useNavigate();
-  const [isApproved, setIsApproved] = useState(false);
+// const handleLogout = async () => {
+//   const auth = getAuth();
+//   try {
+//     await signOut(auth);
+//     const navigate = useNavigate();
+//     navigate('/Home');
+//   } catch (error) {
+//     console.error("Error during logout:", error);
+//   }
+// };
 
-  useEffect(() => {
-    const checkApprovalStatus = async () => {
-      try {
-        const auth = getAuth();
-        const user = auth.currentUser;
-        
-        // if (!user) {
-        //   navigate('/LoginForm');
-        //   return;
-        // }
-
-        const registrationsRef = collection(firestore, 'auctions');
-        const q = query(registrationsRef, where("userId", "==", user.uid));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-          const userData = querySnapshot.docs[0].data();
-          setIsApproved(userData.isApproved || false);
+  
+  const SAuctionPage = () => {
+    const navigate = useNavigate();
+    const [isApproved, setIsApproved] = useState(false);
+    
+    useEffect(() => {
+      const checkApprovalStatus = async () => {
+        try {
+          const auth = getAuth();
+          const user = auth.currentUser;
+          
+          // if (!user) {
+          //   navigate('/LoginForm');
+          //   return;
+          // }
+  
+          const registrationsRef = collection(firestore, 'auctions');
+          const q = query(registrationsRef, where("userId", "==", user.uid));
+          const querySnapshot = await getDocs(q);
+  
+          if (!querySnapshot.empty) {
+            const userData = querySnapshot.docs[0].data();
+            setIsApproved(userData.isApproved || false);
+          }
+        } catch (error) {
+          console.error("Error checking approval status:", error);
         }
-      } catch (error) {
-        console.error("Error checking approval status:", error);
+      };
+  
+      checkApprovalStatus();
+    }, [navigate]);
+  
+    const handleButtonClick = () => {
+      if (isApproved) {
+        navigate('/SellerInputForm');
+      } else {
+        alert('Please wait for admin approval to access this feature.');
       }
     };
-
-    checkApprovalStatus();
-  }, [navigate]);
-
-  const handleButtonClick = () => {
-    if (isApproved) {
-      navigate('/PriceInputForm');
-    } else {
-      alert('Please wait for admin approval to access this feature.');
-    }
-  };
-
-  const handleLogout = async () => {
-    const auth = getAuth();
-    try {
-      await signOut(auth);
-      navigate('/Home');
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
-
+  
+    const handleLogout = async () => {
+      const auth = getAuth();
+      try {
+        await signOut(auth);
+        navigate('/Home');
+      } catch (error) {
+        console.error("Error during logout:", error);
+      }
+    };
   return (
-    
     <>
     <div className="max-w-6xl mx-auto p-6 bg-gray-50">
       {/* Header */}
       <nav className="navigationbardauc">
+        {/* <div className="flex gap-8">
+          <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
+          <Link to="/Pricesm"><span className="text-gray-600 ">Prices</span></Link>
+          <Link to="/AuctionPage"><span className="text-gray-600 font-medium">Auction</span></Link>
+          <span className="text-gray-600">Contact Us</span>
+          <span className="text-gray-600">About Us</span>
+        </div> */}
         <ProfilePopup onLogout={handleLogout} />
       </nav>
 
@@ -183,23 +200,21 @@ const AuctionPage = () => {
         </Card>
 
         <div className="flex flex-col items-center justify-center gap-4">
-            <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={handleButtonClick}
-                className={`px-8 py-3 rounded-lg font-medium text-lg text-white transition-colors ${
-                  isApproved 
-                    ? 'bg-green-900 hover:bg-green-800 cursor-pointer' 
-                    : 'bg-gray-400 cursor-not-allowed'
-                }`}
-              >
-                BUY NOW
-              </button>
-              {!isApproved && (
-                <div className="text-sm text-gray-500">
-                  Waiting for admin approval
-                </div>
-              )}
+          <button
+            onClick={handleButtonClick}
+            className={`px-8 py-3 rounded-lg font-medium text-lg text-white transition-colors ${
+              isApproved 
+                ? 'bg-green-900 hover:bg-green-800 cursor-pointer' 
+                : 'bg-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Add
+          </button>
+          {!isApproved && (
+            <div className="text-sm text-gray-500">
+              Waiting for admin approval
             </div>
+          )}
           <Card className="w-full">
             <div className="p-4">
               <div className="text-center">
@@ -244,4 +259,4 @@ const AuctionPage = () => {
   )
 }
 
-export default AuctionPage
+export default SAuctionPage

@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 
 const ProfilePopup = ({ onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     onLogout();
@@ -16,7 +17,7 @@ const ProfilePopup = ({ onLogout }) => {
         <div className="flex gap-8">
           <Link to="/Homes"><span className="text-gray-600 font-medium font-color:green">Home</span></Link>
           <Link to="/Pricesm1"><span className="text-gray-600">Prices</span></Link>
-          <Link to="/AuctionPage"><span className="text-gray-600 ">Auction</span></Link>
+          <Link to="/CardamomAuctionForm"><span className="text-gray-600 ">Auction</span></Link>
           <span className="text-gray-600">Contact Us</span>
           <span className="text-gray-600">About Us</span>
           <div className='navgationdivs'> </div>

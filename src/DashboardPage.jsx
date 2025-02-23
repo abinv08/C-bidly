@@ -90,7 +90,7 @@ const DashboardPage = () => {
       <div className="sidebar">
         <div className="sidebar-title">Admin Panel</div>
         <nav className="sidebar-nav">
-          {['Dashboard', 'Aprovals', 'Auction', 'Accounts', 'Review'].map((item) => (
+          {['Dashboard', 'Aprovals', 'Auction', 'Auction Live', 'Review'].map((item) => (
             <button
               key={item}
               className={`nav-button ${currentPage === item.toLowerCase() ? 'active' : ''}`}

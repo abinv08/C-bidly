@@ -1,11 +1,14 @@
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom';
 import ProfilePopup from './ProfilePopup';
+import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
 
 
 const handleLogout = async () => {
+  const auth = getAuth();
   try {
     await signOut(auth);
+    const navigate = useNavigate();
     navigate('/Home');
   } catch (error) {
     console.error("Error during logout:", error);

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { firestore, auth } from './Firebase';
 import './CardamomAuctionForm.css';
-import axios from 'axios';
-import { firestore } from './Firebase'; // Import your firebase configuration
-import { collection, addDoc } from 'firebase/firestore'; // Firestore functions for adding documents
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 const CardamomAuctionForm = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: '',
     gst: '',
@@ -12,6 +13,84 @@ const CardamomAuctionForm = () => {
     role: '',
     image: null
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUserRegistration = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          navigate('/LoginForm');
+          return;
+        }
+
+        const registrationsRef = collection(firestore, 'auctions');
+        const q = query(registrationsRef, where("userId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          
+          if (userData.isApproved) {
+            if (userData.role === 'buyer') {
+              navigate('/AuctionPage');
+            } else if (userData.role === 'seller') {
+              navigate('/SAuctionPage');
+            }
+          } else {
+            navigate('/PendingApproval');
+          }
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error checking registration:", error);
+        setIsLoading(false);
+      }
+    };
+
+    checkUserRegistration();
+  }, [navigate]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert('Please login first');
+        navigate('/loginForm');
+        return;
+      }
+
+      // Get current user's details from users collection
+      const usersRef = collection(firestore, 'users');
+      const userQuery = query(usersRef, where("uid", "==", user.uid));
+      const userSnapshot = await getDocs(userQuery);
+      
+      // Save data to Firebase Firestore with approval status and submitter info
+      const docRef = await addDoc(collection(firestore, 'auctions'), {
+        userId: user.uid,
+        name: formData.name,
+        gst: formData.gst,
+        license: formData.license,
+        role: formData.role,
+        image: formData.image ? formData.image.name : null,
+        createdAt: new Date(),
+        isApproved: false,
+        submittedBy: user.uid, // Store the user ID of the submitter
+        submitterEmail: user.email, // Store the email from auth
+        // Include any additional user details you want to store
+      });
+
+      console.log('Document written with ID: ', docRef.id);
+      navigate('/PendingApproval');
+
+    } catch (error) {
+      console.error('Error submitting the form:', error);
+      alert('There was an error submitting the form.');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,50 +101,17 @@ const CardamomAuctionForm = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setFormData(prevState => ({
-      ...prevState,
-      image: file
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formDataToSend = new FormData();
-    formDataToSend.append('name', formData.name);
-    formDataToSend.append('gst', formData.gst);
-    formDataToSend.append('license', formData.license);
-    formDataToSend.append('role', formData.role);
-
-    if (formData.image) {
-      formDataToSend.append('image', formData.image);
-    }
-
-    try {
-      // Save data to Firebase Firestore
-      const docRef = await addDoc(collection(firestore, 'auctions'), {
-        name: formData.name,
-        gst: formData.gst,
-        license: formData.license,
-        role: formData.role,
-        image: formData.image ? formData.image.name : null // You may need to handle file upload and get the URL
-      });
-
-      console.log('Document written with ID: ', docRef.id);
-
-      // Send data to backend via axios (optional)
-      // const response = await axios.post('http://localhost:5000/register', formDataToSend, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data'
-      //   }
-      // });
-      // alert(response.data.message);
-    } catch (error) {
-      console.error('Error submitting the form:', error);
-      alert('There was an error submitting the form.');
+    if (e.target.files[0]) {
+      setFormData(prevState => ({
+        ...prevState,
+        image: e.target.files[0]
+      }));
     }
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="auction-container">
@@ -109,19 +155,22 @@ const CardamomAuctionForm = () => {
               <option value="seller">SELLER/FARMER</option>
             </select>
 
-            {/* Conditionally render image upload for Buyer role */}
             {formData.role === 'buyer' && (
               <div>
-                <label htmlFor="image" className="image-label"> Bank Proof (5 Cr Security Deposit)</label>
+                <label htmlFor="image" className="image-label">
+                  Bank Proof (5 Cr Security Deposit)
+                </label>
                 <input
                   type="file"
                   name="image"
                   id="image"
                   accept="image/*"
                   onChange={handleImageChange}
-                  required={formData.role === 'buyer'} // Make it required if Buyer is selected
+                  required={formData.role === 'buyer'}
                 />
-                {formData.image && <p className="image-label">Selected file: {formData.image.name}</p>}
+                {formData.image && (
+                  <p className="image-label">Selected file: {formData.image.name}</p>
+                )}
               </div>
             )}
             

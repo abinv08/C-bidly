@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import ProfilePopup from './ProfilePopup';
 import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -48,7 +47,7 @@ const AuctionPage = () => {
 
   const handleButtonClick = () => {
     if (isApproved) {
-      navigate('/PriceInputForm');
+      navigate('/BiddingPage');
     } else {
       alert('Please wait for admin approval to access this feature.');
     }

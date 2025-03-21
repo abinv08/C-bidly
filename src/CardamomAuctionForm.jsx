@@ -110,8 +110,13 @@ const CardamomAuctionForm = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center fixed top-0 left-0 right-0 p-4 bg-white z-50">
+        <div className="text-lg text-gray-700">Loading...</div>
+      </div>
+    );
   }
+  
 
   return (
     <div className="auction-container">

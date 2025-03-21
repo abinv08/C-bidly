@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ProfilePopup from './ProfilePopup';
 import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
 
@@ -15,18 +15,19 @@ const handleLogout = async () => {
   }
 };
 
+
+
 const Homes = () => {
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
   return (
    <>
     <div className="homemaindiv">
     <nav className="navigationbard">
-        {/* <div className="flex gap-8">
-          <Link to="/Homes"><span className="text-gray-600 font-medium font-color:green">Home</span></Link>
-          <Link to="/Pricesm1"><span className="text-gray-600">Prices</span></Link>
-          <Link to="/AuctionPage"><span className="text-gray-600 ">Auction</span></Link>
-          <span className="text-gray-600">Contact Us</span>
-          <span className="text-gray-600">About Us</span>
-        </div> */}
+       
         <ProfilePopup onLogout={handleLogout} />
       </nav>
       <div className='Hmaindiv'>
@@ -36,7 +37,6 @@ const Homes = () => {
       <div className="hero">
         <h1 className="logo">C-BIDLY</h1>
         <p className="tagline">"Stay informed, embrace the market rhythms, and the value of cardamom."</p>
-        {/* <Link to="/LoginForm" className="sign-up-link"><button className="login-btn">LOG IN</button></Link> */}
       </div>
 
       {/* Content Section */}
@@ -45,16 +45,22 @@ const Homes = () => {
           Stay Informed, Embrace<br />The Market Rhythms,<br />And The Value Of Cardamom.
         </h2>
         <div className="cards-container">
-        <Link to="/CardamomAuctionForm" className="card-p">
-            <h3 style={{color:'white'}}>Cardamom</h3>
-            <p style={{color:'white'}}>Auction</p>
-          {/* </div> */}
-          </Link>
-         <Link to="/Pricesm1" className="card-p">
-            <h3 style={{color:'white'}}>Cardamom</h3>
-            <p style={{color:'white'}}>Price Today</p>
-          </Link>
-        </div>
+      <div
+        className="card-p cursor-pointer"
+        onClick={() => handleNavigate('/CardamomAuctionForm')}
+      >
+        <h3 style={{ color: 'white' }}>Cardamom</h3>
+        <p style={{ color: 'white' }}>Auction</p>
+      </div>
+      
+      <div
+        className="card-p cursor-pointer"
+        onClick={() => handleNavigate('/Pricesm1')}
+      >
+        <h3 style={{ color: 'white' }}>Cardamom</h3>
+        <p style={{ color: 'white' }}>Price Today</p>
+      </div>
+    </div>
       </section>
       </div>
     </div>

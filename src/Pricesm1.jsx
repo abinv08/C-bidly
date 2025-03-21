@@ -100,6 +100,10 @@ const Pricesm1 = () => {
     }
   };
 
+  const handlePriceTrendClick = () => {
+    navigate('/CardamomPriceTracker');
+  };
+
   if (!isEmailVerified) {
     return null;
   }
@@ -109,33 +113,28 @@ const Pricesm1 = () => {
      
       
       <nav className="navigationbard">
-       
-        {/* <div className='navigationbardimg'> */}
-          {/* Show the user's profile image and name if they are logged in */}
-          {/* {user ? (
-            <>
-              <img onClick={handleLogout} 
-                className="userimage"
-                src={ProfilePhoto} */}
-                {/* // src={user.photoURL} // User's photo URL from Firebase
-                alt="user photo"
-                // width={"15%"}
-                // style={{ borderRadius: "100%", cursor: "pointer" }} // Add cursor pointer to indicate clickable
-                // Handle click to logout
-              /> */}
-              {/* <p className="username">{user.displayName}</p> {/* User's name from Firebase 
-            </>
-          ) : (
-            <p className="username">Guest</p> // If the user is not logged in, show "Guest"
-          )} */}
-          {/* <div className="flex justify-end p-4"> */}
-               
-           {/* </div> */}
-        {/* </div> */}
         <ProfilePopup onLogout={handleLogout} />
       </nav>
 
       <div className="container">
+      <button 
+          onClick={handlePriceTrendClick}
+          className="price-trend-btn"
+          style={{
+            position: 'absolute',
+            right: '20px',
+            top: '60px',
+            padding: '8px 16px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
+        >
+          Price Trend
+        </button>
         <h1 className='priceheader'>Live Cardamom Price</h1>
 
         {/* <div className="toggle-container">

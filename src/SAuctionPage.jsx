@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import ProfilePopup from './ProfilePopup';
 import { onAuthStateChanged, signOut, getAuth } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -60,7 +59,7 @@ const Card = ({ children, className = '' }) => (
   
     const handleButtonClick = () => {
       if (isApproved) {
-        navigate('/SellerInputForm');
+        navigate('/AuctionLotAdd');
       } else {
         alert('Please wait for admin approval to access this feature.');
       }
@@ -80,13 +79,7 @@ const Card = ({ children, className = '' }) => (
     <div className="max-w-6xl mx-auto p-6 bg-gray-50">
       {/* Header */}
       <nav className="navigationbardauc">
-        {/* <div className="flex gap-8">
-          <Link to="/Homes"><span className="text-gray-600">Home</span></Link>
-          <Link to="/Pricesm"><span className="text-gray-600 ">Prices</span></Link>
-          <Link to="/AuctionPage"><span className="text-gray-600 font-medium">Auction</span></Link>
-          <span className="text-gray-600">Contact Us</span>
-          <span className="text-gray-600">About Us</span>
-        </div> */}
+       
         <ProfilePopup onLogout={handleLogout} />
       </nav>
 
@@ -208,7 +201,7 @@ const Card = ({ children, className = '' }) => (
                 : 'bg-gray-400 cursor-not-allowed'
             }`}
           >
-            Add
+            LOTS
           </button>
           {!isApproved && (
             <div className="text-sm text-gray-500">

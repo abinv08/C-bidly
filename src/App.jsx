@@ -25,6 +25,10 @@ import ProfilePopup from './ProfilePopup'
 import AprovalPanel from './AprovalPanel'
 import SellerInputForm from './SellerInputForm'
 import PendingApproval from './PendingApproval'
+import CardamomPriceTracker from './CardamomPriceTracker'
+import AuctionLotAdd from './AuctionLotAdd'
+import LotApproval from './LotApproval'
+import BiddingPage from './BiddingPage'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -39,8 +43,8 @@ function App() {
             <Route path='/Home' Component={Home}></Route>
             <Route path='/Homes' Component={Homes}></Route>
             <Route path='/Pricesm1' Component={Pricesm1}></Route>
-            <Route path='/Pricesm' Component={Pricesm}></Route>
-            <Route path='/Pricela' Component={Pricela}></Route>
+            {/* <Route path='/Pricesm' Component={Pricesm}></Route>
+            <Route path='/Pricela' Component={Pricela}></Route> */}
             <Route path='/AuctionPage' Component={AuctionPage}></Route>
             <Route path='/DashboardPage' Component={DashboardPage}></Route>
             <Route path='/Otpv' Component={Otpv}></Route>
@@ -52,9 +56,13 @@ function App() {
             <Route path='/PriceInputForm' Component={PriceInputForm}></Route> 
             <Route path='/ProfilePopup' Component={ProfilePopup}></Route> 
             <Route path='/AprovalPanel' Component={AprovalPanel}></Route> 
+            <Route path='/LotApproval' Component={LotApproval}></Route> 
             <Route path='/SAuctionPage' Component={SAuctionPage}></Route>
             <Route path='/SellerInputForm' Component={SellerInputForm}></Route>
             <Route path='/PendingApproval' Component={PendingApproval}></Route>
+            <Route path='/CardamomPriceTracker' Component={CardamomPriceTracker}></Route>
+            <Route path='/AuctionLotAdd' Component={AuctionLotAdd}></Route>
+            <Route path='/BiddingPage' Component={BiddingPage}></Route>
           </Routes>
         </Router>
      

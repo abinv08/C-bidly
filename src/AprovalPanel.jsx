@@ -32,17 +32,67 @@ const ApprovalPanel = () => {
         if (data.role === 'seller') sellers++;
         if (data.role === 'buyer') buyers++;
         
+        // Log the raw data for debugging
+        console.log("Raw auction data:", data);
+        
+        // Initialize submitter details
         let submitterDetails = { name: 'N/A', email: 'N/A' };
-        if (data.submittedBy) {
-          const userDoc = await getDoc(doc(firestore, 'users', data.submittedBy));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
+        
+        // Check if submittedBy exists either directly or as a field
+        const submitterId = data.submittedBy || data.submitterId || data.userId;
+        
+        if (submitterId) {
+          try {
+            // First try to get user from users collection
+            const userDoc = await getDoc(doc(firestore, 'users', submitterId));
+            
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              console.log("User data from Firestore:", userData);
+              
+              // Check all possible field names for user info
+              submitterDetails = {
+                // For Google auth, displayName is often used
+                // For email/password, name or fullName might be used
+                name: userData.displayName || userData.name || userData.fullName || 
+                      // If the user has a profile object
+                      (userData.profile && (userData.profile.displayName || userData.profile.name)) || 
+                      // Last resort - use email or uid
+                      userData.email || submitterId || 'N/A',
+                email: userData.email || 'N/A'
+              };
+            } else {
+              console.log(`User document not found for ID: ${submitterId}`);
+              // If user not found in users collection, check if data is stored directly in auction doc
+              submitterDetails = {
+                name: data.submitterName || data.userName || data.submittedByName || 'N/A',
+                email: data.submitterEmail || data.userEmail || data.submittedByEmail || 'N/A'
+              };
+            }
+          } catch (error) {
+            console.error("Error fetching submitter details:", error);
+            
+            // Fallback to direct fields from auction document
             submitterDetails = {
-              name: userData.name || 'N/A',
-              email: userData.email || 'N/A'
+              name: data.submitterName || data.userName || data.submittedByName || 'N/A',
+              email: data.submitterEmail || data.userEmail || data.submittedByEmail || 'N/A'
             };
           }
+        } else if (data.submitterName || data.submitterEmail || data.userName || data.userEmail || data.submittedByName || data.submittedByEmail) {
+          // If submitter ID doesn't exist but name/email fields do, use those
+          submitterDetails = {
+            name: data.submitterName || data.userName || data.submittedByName || 'N/A',
+            email: data.submitterEmail || data.userEmail || data.submittedByEmail || 'N/A'
+          };
         }
+        
+        // Additional fallback for Google auth
+        if (submitterDetails.name === 'N/A' && data.submitterEmail && data.submitterEmail.includes('@')) {
+          // If we have an email but no name, use the part before @ as a fallback name
+          submitterDetails.name = data.submitterEmail.split('@')[0];
+        }
+        
+        console.log("Final submitter details:", submitterDetails);
         
         registrations.push({
           id: docSnapshot.id,

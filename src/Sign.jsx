@@ -3,7 +3,7 @@ import './index.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { toast } from 'react-toastify';
+import { toast,ToastContainer  } from 'react-toastify';
 import { auth, firestore } from './Firebase';
 
 const Sign = () => {
@@ -16,10 +16,38 @@ const Sign = () => {
   const handlePhoneChange = (e) => {
     const input = e.target.value;
     const formattedInput = input.replace(/[^\d]/g, ''); // Remove non-digit characters
-    if (formattedInput.length <= 10) {
-      setPhone(formattedInput); // Only set phone number if it's valid
+  
+    // Check if the first digit is 6, 7, 8, or 9 and the length is <= 10
+    if (
+      formattedInput.length <= 10 &&
+      ['6', '7', '8', '9'].includes(formattedInput[0])
+    ) {
+      setPhone(formattedInput); // Set phone number if valid
+    } else if (formattedInput.length === 0 || !['6', '7', '8', '9'].includes(formattedInput[0])) {
+      // Clear the field if the number is invalid or the first digit is not 6-9
+      setPhone('');
     }
   };
+  // toast.configure();
+
+  // const validatePassword = (password) => {
+  //   // Password validation regex
+  //   const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+    
+  //   // If password doesn't match the regex, show a Toastify error
+  //   if (!passwordRegex.test(password)) {
+  //     toast.error('Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one number, and one special character!');
+  //     return false;
+  //   }
+  //   return true;
+  // };
+
+  // const handlePasswordChange = (e) => {
+  //   const newPass = e.target.value;
+  //   setPass(newPass);
+  //   validatePassword(newPass); // Validate password whenever it changes
+  // };
+  
 
   const googleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -122,7 +150,7 @@ const Sign = () => {
           type="text"
           className="input"
           value={phone}
-          placeholder="Phone No:"
+          placeholder="Phone No:(Indian Phone Number)"
           onChange={handlePhoneChange}
           required
         />
@@ -132,6 +160,7 @@ const Sign = () => {
           value={pass}
           placeholder="Password"
           onChange={(e) => setPass(e.target.value)}
+          // onChange={handlePasswordChange}
           required
         />
         <button type="submit" className="form-btn">

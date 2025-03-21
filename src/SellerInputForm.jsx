@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';  // Import useNavigate hook
+import { useNavigate } from 'react-router-dom';
 import { auth } from './Firebase'; // Adjust the import to your Firebase config file
 
 const SellerInputForm = () => {
-  const navigate = useNavigate();  // Initialize useNavigate
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     sellerName: '',
     grade: '',
@@ -38,7 +38,7 @@ const SellerInputForm = () => {
     }));
   };
 
-  // Save the form data to Firestore
+  // Save the form data to Firestore with approval status
   const saveToFirestore = async () => {
     try {
       const db = getFirestore();
@@ -49,7 +49,10 @@ const SellerInputForm = () => {
         return;
       }
 
-      // You can store the form data under a specific collection for each user
+      // Retrieve the user's email from Firebase Authentication
+      const userEmail = user.email;
+
+      // Store the form data with pending approval status
       const userCollectionRef = collection(db, 'sellers');
       await addDoc(userCollectionRef, {
         sellerName: formData.sellerName,
@@ -58,14 +61,16 @@ const SellerInputForm = () => {
         numberOfBags: formData.numberOfBags,
         totalQuantity: formData.totalQuantity,
         userId: user.uid,
+        userEmail: userEmail,
+        approvalStatus: 'pending', // Add approval status field
         createdAt: new Date().toISOString()
       });
 
       // After successful submission, show an alert
-      alert("Data submitted successfully!");
+      alert("Data submitted successfully! Waiting for admin approval.");
 
       // Navigate to AuctionPage after the alert
-      navigate('/SAuctionPage');  // Adjust the route path to your AuctionPage
+      navigate('/SAuctionPage');
     } catch (error) {
       console.error("Error submitting form data:", error);
     }

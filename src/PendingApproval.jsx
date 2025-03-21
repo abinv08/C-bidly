@@ -11,10 +11,10 @@ const PendingApproval = () => {
     const fetchUserRole = async () => {
       try {
         const user = auth.currentUser;
-        if (!user) {
-          navigate('/LoginForm');
-          return;
-        }
+        // if (!user) {
+        //   navigate('/LoginForm');
+        //   return;
+        // }
 
         const registrationsRef = collection(firestore, 'auctions');
         const q = query(registrationsRef, where("userId", "==", user.uid));
@@ -44,12 +44,14 @@ const PendingApproval = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md text-center">
         <h2 className="text-2xl font-bold mb-4">Registration Pending Approval</h2>
-        <p className="text-gray-600 mb-4">
+        <p className="  w-940">
+        
           Your registration is currently under review. You will be notified once an admin approves your registration.
         </p>
-        <p className="text-gray-600 mb-6">
+        <p className=" mb-6 mb-4rem">
           You can view the auction page, but some features will be restricted until approval.
         </p>
+        
         <button
           onClick={handleOkClick}
           className="bg-green-600 text-white px-8 py-2 rounded-lg hover:bg-green-700 transition-colors"

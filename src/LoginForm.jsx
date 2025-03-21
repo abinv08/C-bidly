@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import './index.css';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './Firebase';
@@ -45,7 +45,7 @@ const LoginForm = () => {
       });
       // Store admin status in session if needed
       sessionStorage.setItem('isAdmin', 'true');
-      navigate("/AdminDashboard");
+      navigate("/DashboardPage");
       return;
     }
 
@@ -105,7 +105,9 @@ const LoginForm = () => {
       });
     }
   };
-
+  const handleSignUpRedirect = () => {
+    navigate('/Sign');
+  };
   return (
     <div className="form-container">
       <p className="title">Welcome back</p>
@@ -134,12 +136,21 @@ const LoginForm = () => {
           Log in
         </button>
       </form>
-      <p className="sign-up-label">
+      {/* <p className="sign-up-label">
         Don't have an account?{' '}
         <Link to="/Sign" className="sign-up-link">
           Sign up
         </Link>
-      </p>
+      </p> */}
+        <p className="sign-up-label">
+      Don't have an account?{' '}
+      <span 
+        className="sign-up-link cursor-pointer"
+        onClick={handleSignUpRedirect}
+      >
+        Sign up
+      </span>
+     </p>
       <div className="buttons-container">
         <div className="google-login-button" onClick={googleLogin}>
           <svg
@@ -175,23 +186,34 @@ const LoginForm = () => {
           <span>Log in with Google</span>
         </div>
       </div>
-      
-      {resetModal && (
-        <div className="reset-password-modal">
-          <div className="modal-content">
+          {resetModal && (
+           <div className="reset-password-modal">
+           <div className="modal-content">
             <h2>Reset Password</h2>
-            <input
-              type="email"
-              className="input"
-              placeholder="Enter your email"
-              value={emailForReset}
-              onChange={(e) => setEmailForReset(e.target.value)}
-            />
-            <button onClick={handleForgotPassword}>Send Reset Email</button>
-            <div onClick={() => setResetModal(false)}>Cancel</div>
-          </div>
-        </div>
-      )}
+             <input
+               type="email"
+                  className="input"
+                  placeholder="Enter your email"
+                  value={emailForReset}
+                  onChange={(e) => setEmailForReset(e.target.value)}
+                 />
+      <div className="modal-buttons">
+        <button 
+          className="reset-button" 
+          onClick={handleForgotPassword}
+        >
+          Send Reset Email
+        </button>
+        <button 
+          className="cancel-button" 
+          onClick={() => setResetModal(false)}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

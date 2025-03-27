@@ -77,7 +77,6 @@ const LotApproval = () => {
         firstApproval: true
       });
       
-      // No need to call fetchLots() - the listener will update the state automatically
       alert("First approval completed successfully! Lot number assigned: " + newLotNumber);
     } catch (error) {
       console.error("Error approving seller:", error);
@@ -95,7 +94,6 @@ const LotApproval = () => {
         finalApprovedAt: new Date().toISOString()
       });
       
-      // No need to call fetchLots() - the listener will update the state automatically
       alert("Final approval completed successfully!");
     } catch (error) {
       console.error("Error giving final approval:", error);
@@ -116,7 +114,6 @@ const LotApproval = () => {
         secondApproval: false
       });
       
-      // No need to call fetchLots() - the listener will update the state automatically
       alert("Seller rejected successfully!");
     } catch (error) {
       console.error("Error rejecting seller:", error);
@@ -136,7 +133,6 @@ const LotApproval = () => {
         secondApproval: false
       });
       
-      // No need to call fetchLots() - the listener will update the state automatically
       alert("Lot rejected successfully!");
     } catch (error) {
       console.error("Error rejecting lot:", error);
@@ -154,28 +150,30 @@ const LotApproval = () => {
       const auctionNo = `${auctionNoPrefix}-${lot.lotNumber}`;
       
       // Create a new auction document in the auctions collection
-      await addDoc(collection(db, 'cardamomAuctions'), {
+      const auctionData = {
         auctionNo: auctionNo,
-        auctionCenter: lot.center || 'Main Center', // Default if not specified
+        auctionCenter: lot.center || 'Main Center',
         totalQuantity: lot.totalQuantity,
-        totalLots: 1, // Starting with 1 lot
+        totalLots: 1,
         lotsSold: 0,
-        minimum: 0, // Will be updated during auction
-        maximum: 0, // Will be updated during auction
-        auctionAvg: 0, // Will be updated during auction
+        minimum: 0,
+        maximum: 0,
+        auctionAvg: 0,
         status: 'pending',
         createdAt: new Date(),
         lotDetails: {
           lotNumber: lot.lotNumber,
           sellerName: lot.sellerName || lot.name,
-          grade: lot.grade,
+          grade: lot.grade || 'Not specified', // Explicitly include grade
           numberOfBags: lot.numberOfBags,
           bagSize: lot.bagSize,
           totalQuantity: lot.totalQuantity,
           sellerId: lot.id
         },
         totalParticipates: 0
-      });
+      };
+      
+      await addDoc(collection(db, 'cardamomAuctions'), auctionData);
       
       // Update the seller document to mark it as added to auction
       const sellerRef = doc(db, 'sellers', lot.id);

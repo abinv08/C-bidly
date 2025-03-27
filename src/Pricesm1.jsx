@@ -57,39 +57,50 @@ const Pricesm1 = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
+ 
 
-        if (currentUser.emailVerified) {
-          try {
-            const userRef = doc(firestore, 'users', currentUser.uid);
-            await updateDoc(userRef, {
-              emailVerified: true
-            });
-            setIsEmailVerified(true);
-          } catch (error) {
-            console.error("Error updating user verification status:", error);
-          }
-        } else {
-          toast.error("Please verify your email before accessing this page", {
-            position: "top-center",
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    if (currentUser) {
+      setUser(currentUser);
+      
+      // Check if user is signed in with Google
+      const isGoogleUser = currentUser.providerData.some(
+        provider => provider.providerId === 'google.com'
+      );
+
+      if (isGoogleUser || currentUser.emailVerified) {
+        try {
+          const userRef = doc(firestore, 'users', currentUser.uid);
+          await updateDoc(userRef, {
+            emailVerified: true
           });
-          navigate("/VerifyEmail", { 
-            state: { 
-              email: currentUser.email,
-              uid: currentUser.uid 
-            } 
-          });
+          setIsEmailVerified(true);
+        } catch (error) {
+          console.error("Error updating user verification status:", error);
+          // Still set isEmailVerified to true even if Firestore update fails
+          setIsEmailVerified(true);
         }
       } else {
-        navigate('/LoginForm');
+        toast.error("Please verify your email before accessing this page", {
+          position: "top-center",
+        });
+        navigate("/VerifyEmail", { 
+          state: { 
+            email: currentUser.email,
+            uid: currentUser.uid 
+          } 
+        });
       }
-    });
+    } else {
+      navigate('/LoginForm');
+    }
+  });
 
-    return () => unsubscribe();
-  }, [auth, navigate]);
+  return () => unsubscribe();
+}, [auth, navigate]);
+
+
 
   const handleLogout = async () => {
     try {

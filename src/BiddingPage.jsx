@@ -1,48 +1,82 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProfilePopup from './ProfilePopup';
+import { getFirestore, collection, query, orderBy, onSnapshot } from 'firebase/firestore';
+import { signOut, getAuth } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 const BiddingPage = () => {
-  const [bidAmount, setBidAmount] = useState('');
   const [selectedLot, setSelectedLot] = useState(null);
-  const [showPriceForm, setShowPriceForm] = useState(false);
+  const [auctions, setAuctions] = useState([]);
+  const [lots, setLots] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const auth = getAuth();
 
-  // Array of lot numbers - red lots are sold
-  const lots = [
-    { id: 1, number: 12, color: 'red', sold: true },
-    { id: 2, number: 12, color: 'red', sold: true },
-    { id: 3, number: 12, color: 'red', sold: true },
-    { id: 4, number: 12, color: 'green', sold: false },
-    { id: 5, number: 12, color: 'green', sold: false },
-    { id: 6, number: 12, color: 'green', sold: false },
-    { id: 7, number: 12, color: 'green', sold: false },
-    { id: 8, number: 12, color: 'green', sold: false }
-  ];
+  useEffect(() => {
+    const db = getFirestore();
+    const publishedAuctionsCollection = collection(db, "auctionlotpub");
+    const q = query(publishedAuctionsCollection, orderBy("publishedAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      try {
+        const auctionData = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          auctionData.push({
+            id: doc.id,
+            ...data,
+            createdAt: data.publishedAt instanceof Date ? data.publishedAt : 
+                      data.publishedAt && data.publishedAt.seconds ? new Date(data.publishedAt.seconds * 1000) : 
+                      data.createdAt instanceof Date ? data.createdAt :
+                      data.createdAt && data.createdAt.seconds ? new Date(data.createdAt.seconds * 1000) :
+                      new Date(),
+            biddingStarted: data.biddingStarted || false,
+            sold: data.sold || false,
+            bidValue1: data.bidValue1 || '',
+            bidValue2: data.bidValue2 || ''
+          });
+        });
+        
+        const lotsFromAuctions = auctionData.map((auction, index) => ({
+          id: auction.id,
+          number: auction.auctionNo || `A${index + 1}`,
+          color: 'green',
+          sold: auction.sold || false,
+          auctionCenter: auction.auctionCenter,
+          totalQuantity: auction.totalQuantity,
+          auctionAvg: auction.auctionAvg,
+          minimum: auction.minimum,
+          maximum: auction.maximum,
+          auctioneer: auction.auctioneer,
+          lotDetails: auction.lotDetails,
+          biddingStarted: auction.biddingStarted || false,
+          bidValue1: auction.bidValue1 || '',
+          bidValue2: auction.bidValue2 || ''
+        }));
+        
+        setAuctions(auctionData);
+        setLots(lotsFromAuctions);
+        
+        if (selectedLot && lots.find(lot => lot.id === selectedLot.id)?.sold) {
+          setSelectedLot(null);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Error processing auctions:", err);
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [selectedLot]);
 
   const handleLotSelect = (lot) => {
-    // Don't allow selection of sold lots
-    if (lot.sold) return;
+    if (lot.sold || !lot.biddingStarted) return;
     setSelectedLot(lot);
   };
 
-  const handleBidSubmit = () => {
-    if (!selectedLot) {
-      alert('Please select a lot');
-      return;
-    }
-    
-    // Show the price entry form instead of submitting directly
-    setShowPriceForm(true);
-  };
-
-  const handleFormClose = () => {
-    setShowPriceForm(false);
-  };
-
-  const handleBuyNow = (amount) => {
-    alert(`Bid of ₹${amount} submitted for Lot ${selectedLot.number}`);
-    setBidAmount('');
-    setShowPriceForm(false);
-  };
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -51,182 +85,203 @@ const BiddingPage = () => {
       console.error("Error during logout:", error);
     }
   };
+  
   return (
     <div className="w-full min-h-screen bg-white">
-      {/* Navigation Bar */}
       <nav className="navigationbard">
         <ProfilePopup onLogout={handleLogout} />
       </nav>
-      {/* Main Content */}
       <div className="flex justify-center p-6">
         <div className="w-full max-w-3xl border border-gray-300 rounded-lg p-6">
-          {/* Lot Numbers Row */}
-          <div className="flex justify-between mb-6">
-            {lots.map((lot) => (
-              <div 
-                key={lot.id}
-                className={`w-12 h-12 flex items-center justify-center text-white font-bold rounded-lg
-                  ${lot.sold ? 'bg-red-800 opacity-60 cursor-not-allowed' : 'bg-green-900 cursor-pointer'}
-                  ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
-                onClick={() => handleLotSelect(lot)}
-              >
-                {lot.number}
-                {lot.sold && <div className="absolute text-xs font-normal">SOLD</div>}
+          <div className="mb-4">
+            <h2 className="text-xl font-bold mb-2">Available Auctions</h2>
+            {loading ? (
+              <div className="text-center py-4">Loading auctions...</div>
+            ) : lots.length === 0 ? (
+              <div className="text-center py-4">No active auctions available</div>
+            ) : (
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                {lots.map((lot) => (
+                  <div 
+                    key={lot.id}
+                    className={`p-3 flex items-center justify-center text-white font-bold rounded-lg
+                      ${lot.sold ? 'bg-red-800 opacity-60 cursor-not-allowed' : 
+                        lot.biddingStarted ? 'bg-green-900 cursor-pointer' : 
+                        'bg-gray-600 cursor-not-allowed'}
+                      ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => handleLotSelect(lot)}
+                  >
+                    <div className="text-center">
+                      <div className="text-xl">{lot.number}</div>
+                      <div className="text-xs">{lot.auctionCenter}</div>
+                    </div>
+                    {lot.sold && <div className="absolute text-xs font-normal">SOLD</div>}
+                    {!lot.biddingStarted && !lot.sold && <div className="absolute text-xs font-normal">NOT STARTED</div>}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
 
-          {/* Bidding Area */}
           <div className="flex space-x-4">
-            {/* Current Bid Lot */}
             <div className="flex-1">
-              <div className="border border-gray-300 rounded-lg p-4 h-36">
+              <div className="border border-gray-300 rounded-lg p-4 h-auto">
                 <h3 className="font-bold mb-2">Current Bid Lot</h3>
                 {selectedLot ? (
-                  <div className="text-center mt-4">
-                    <p>Lot Number: {selectedLot.number}</p>
-                    <p>Lot ID: {selectedLot.id}</p>
+                  <div className="mt-2">
+                    <p><span className="font-semibold">Auction No:</span> {selectedLot.number}</p>
+                    <p><span className="font-semibold">Center:</span> {selectedLot.auctionCenter}</p>
+                    <p><span className="font-semibold">Auctioneer:</span> {selectedLot.auctioneer || "Not specified"}</p>
+                    <p><span className="font-semibold">Quantity:</span> {selectedLot.totalQuantity} Kg</p>
+                    {selectedLot.lotDetails && (
+                      <>
+                        <p><span className="font-semibold">Lot Number:</span> {selectedLot.lotDetails.lotNumber}</p>
+                        <p><span className="font-semibold">Seller:</span> {selectedLot.lotDetails.sellerName}</p>
+                        <p><span className="font-semibold">Grade:</span> {selectedLot.lotDetails.grade}</p>
+                      </>
+                    )}
+                    <p><span className="font-semibold">Minimum Price:</span> ₹{parseInt(selectedLot.minimum || 0).toLocaleString()}</p>
+                    <p><span className="font-semibold">Maximum Price:</span> ₹{parseInt(selectedLot.maximum || 0).toLocaleString()}</p>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 mt-4">Please select a lot</p>
+                  <p className="text-center text-gray-500 mt-4">Please select an active auction</p>
                 )}
               </div>
             </div>
 
-            {/* Bidding Form */}
             <div className="flex-1">
-              <div className="border border-gray-300 rounded-lg p-4 h-36 mb-4">
+              <div className="border border-gray-300 rounded-lg p-4 h-auto mb-4">
                 <h3 className="font-bold mb-2">Bidded Price</h3>
-                <div className="mt-2">
-                  
-                </div>
+                {selectedLot ? (
+                  <PriceEntryForm 
+                    onBuyNow={(amount) => {
+                      alert(`Bid of ₹${amount} submitted for Lot ${selectedLot.number}`);
+                    }}
+                    minimumPrice={parseInt(selectedLot.minimum || 0)}
+                    maximumPrice={parseInt(selectedLot.maximum || 0)}
+                    bidValue1={selectedLot.bidValue1}
+                    bidValue2={selectedLot.bidValue2}
+                  />
+                ) : (
+                  <p className="text-center text-gray-500 mt-4">Select an active auction to bid</p>
+                )}
               </div>
-
-              {/* Bid Button */}
-              <button
-                onClick={handleBidSubmit}
-                className={`w-full py-3 rounded-lg text-lg font-bold ${
-                  selectedLot ? 'bg-green-900 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-                disabled={!selectedLot}
-              >
-                Bid
-              </button>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Price Entry Form Modal */}
-      {showPriceForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={handleFormClose}></div>
-          <PriceEntryForm onBuyNow={handleBuyNow} onClose={handleFormClose} />
-        </div>
-      )}
     </div>
   );
 };
 
-// Price Entry Form Component
-const PriceEntryForm = ({ onBuyNow, onClose }) => {
-  const [currentPrice, setCurrentPrice] = useState(3500);
-  const [enteredAmount, setEnteredAmount] = useState('');
-  const [totalPrice, setTotalPrice] = useState(currentPrice);
-  const [activeButton, setActiveButton] = useState(null);
-  const [lockedIncrement, setLockedIncrement] = useState(false);
-  const [incrementType, setIncrementType] = useState(null);
+const PriceEntryForm = ({ onBuyNow, minimumPrice = 0, maximumPrice = 0, bidValue1 = '', bidValue2 = '' }) => {
+  const [totalPrice, setTotalPrice] = useState(minimumPrice);
 
-  const handleAmountChange = (e) => {
-    const amount = e.target.value;
-    if (amount === '' || /^\d+$/.test(amount)) {
-      setEnteredAmount(amount);
-      setTotalPrice(amount ? currentPrice + parseInt(amount) : currentPrice);
-      setActiveButton(null);
-      // Reset increment lock when manually entering a value
-      setLockedIncrement(false);
-      setIncrementType(null);
+  const handleBidClick = (value) => {
+    if (value && !isNaN(parseInt(value))) {
+      const increment = parseInt(value);
+      setTotalPrice(prevTotal => {
+        const newTotal = prevTotal + increment;
+        return newTotal <= maximumPrice ? newTotal : maximumPrice;
+      });
     }
   };
 
-  // Modified to lock increment type once a button is pressed
-  const handlePresetClick = (value) => {
-    // If we're already locked to a different increment type, don't allow this button
-    if (lockedIncrement && incrementType !== value) {
-      return;
-    }
-    
-    // Set this button as active and lock the increment type
-    setActiveButton(value);
-    setLockedIncrement(true);
-    setIncrementType(value);
-    setEnteredAmount('');
-    
-    // Increment the total price by the preset value
-    setTotalPrice(prevTotal => prevTotal + value);
+  const handleReset = () => {
+    setTotalPrice(minimumPrice);
   };
 
   const handleBuyNowClick = () => {
     onBuyNow(totalPrice);
   };
 
+  const isMaxReached = totalPrice >= maximumPrice;
+
+  const avgPrice = (minimumPrice + maximumPrice) / 2;
+
+  // Data to create a zigzag pattern similar to the provided graph
+  const winningChanceData = [
+    { value: 0 },
+    { value: 5 },
+    { value: 3 },
+    { value: 8 },
+    { value: 6 },
+    { value: 10 },
+    { value: 8 },
+    { value: 12 },
+    { value: 10 },
+    { value: 15 },
+  ];
+
   return (
-    <div className="relative z-10 bg-[#8AB861] p-6 rounded-lg shadow-lg w-72">
-      <button 
-        className="absolute top-2 right-2 text-white hover:text-gray-200" 
-        onClick={onClose}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-      <div className="bg-white rounded-lg p-3 mb-4">
+    <div className="bg-white p-3 rounded-lg">
+      <div className="mb-2">
         <div className="text-sm text-gray-600">Current Price:</div>
-        <div className="text-2xl font-bold text-green-800">
-          ₹{currentPrice}
-        </div>
+        <div className="text-lg font-bold text-green-800">₹{minimumPrice.toLocaleString()}</div>
       </div>
-      <div className="bg-white rounded-lg p-3 mb-4">
+      <div className="mb-3">
         <div className="text-sm text-gray-600">Entered Price:</div>
-        <div className="text-2xl font-bold text-green-800">
-          ₹{totalPrice}
+        <div className="text-lg font-bold text-green-800">₹{totalPrice.toLocaleString()}</div>
+      </div>
+      {totalPrice > avgPrice && (
+        <div className="mb-3 relative">
+          <div className="text-sm text-gray-600">Winning Chance:</div>
+          <div style={{ height: "50px" }} className="relative">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={winningChanceData}>
+                <Line 
+                  type="linear"
+                  dataKey="value" 
+                  stroke="#00B894" 
+                  strokeWidth={4}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            {/* Custom arrow at the end of the line */}
+            <div className="absolute top-0 right-0">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 12L12 6L0 0L0 12Z" fill="#00B894"/>
+              </svg>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="flex gap-4 mb-4">
+      )}
+      <div className="flex gap-2 mb-3">
         <button
-          onClick={() => handlePresetClick(2)}
-          className={`flex-1 p-3 rounded-lg text-center transition-colors
-            ${activeButton === 2 ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-100'}
-            ${lockedIncrement && incrementType !== 2 ? 'opacity-50 cursor-not-allowed' : ''}
-            text-2xl font-bold text-green-800`}
-          disabled={lockedIncrement && incrementType !== 2}
+          onClick={() => handleBidClick(bidValue1)}
+          className={`flex-1 p-2 rounded-lg text-center transition-colors
+            bg-gray-100 hover:bg-gray-200 text-lg font-bold
+            ${(!bidValue1 || isNaN(parseInt(bidValue1)) || isMaxReached) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!bidValue1 || isNaN(parseInt(bidValue1)) || isMaxReached}
         >
-          2
+          +{bidValue1 || 'N/A'}
         </button>
         <button
-          onClick={() => handlePresetClick(5)}
-          className={`flex-1 p-3 rounded-lg text-center transition-colors
-            ${activeButton === 5 ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-100'}
-            ${lockedIncrement && incrementType !== 5 ? 'opacity-50 cursor-not-allowed' : ''}
-            text-2xl font-bold text-green-800`}
-          disabled={lockedIncrement && incrementType !== 5}
+          onClick={() => handleBidClick(bidValue2)}
+          className={`flex-1 p-2 rounded-lg text-center transition-colors
+            bg-gray-100 hover:bg-gray-200 text-lg font-bold
+            ${(!bidValue2 || isNaN(parseInt(bidValue2)) || isMaxReached) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!bidValue2 || isNaN(parseInt(bidValue2)) || isMaxReached}
         >
-          5
+          +{bidValue2 || 'N/A'}
         </button>
       </div>
-      <input
-        type="text"
-        value={enteredAmount}
-        onChange={handleAmountChange}
-        placeholder="Enter Amount"
-        className="w-full p-3 rounded-lg mb-4 border border-gray-300 focus:outline-none focus:border-blue-500"
-      />
-      <button
-        onClick={handleBuyNowClick}
-        className="w-full bg-green-800 text-white p-3 rounded-lg hover:bg-green-900 transition-colors"
-      >
-        BUY NOW
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={handleBuyNowClick}
+          className="flex-1 bg-green-800 text-white p-2 rounded-lg hover:bg-green-900 transition-colors"
+        >
+          BID NOW
+        </button>
+        <button
+          onClick={handleReset}
+          className="flex-1 bg-gray-500 text-white p-2 rounded-lg hover:bg-gray-600 transition-colors"
+        >
+          RESET
+        </button>
+      </div>
     </div>
   );
 };

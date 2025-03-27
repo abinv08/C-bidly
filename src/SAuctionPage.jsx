@@ -93,16 +93,28 @@ const Card = ({ children, className = '' }) => (
             <div className="text-green-700 text-xl">13/15-01-2025</div>
           </div>
         </Card>
-        <Card>
+        {/* <Card>
           <div className="p-4">
             <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">PLANTER QUANTITY:</div>
             <div className="text-green-700 text-xl">48,319.7 Kg</div>
           </div>
-        </Card>
-        <Card>
+        </Card> */}
+        {/* <Card>
           <div className="p-4">
             <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">DEALER QUANTITY:</div>
             <div className="text-green-700 text-xl">12,909.4 Kg</div>
+          </div>
+        </Card> */}
+         <Card>
+          <div className="p-4">
+            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">MAXIMUM:</div>
+            <div className="text-green-700 text-xl">₹3800</div>
+          </div>
+        </Card>
+        <Card>
+          <div className="p-4">
+            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">MINIMUM:</div>
+            <div className="text-green-700 text-xl">₹2650</div>
           </div>
         </Card>
         <Card>
@@ -115,30 +127,15 @@ const Card = ({ children, className = '' }) => (
 
       {/* Middle Row Cards */}
       <div className="grid grid-cols-4 gap-4 mb-4">
-        <Card>
-          <div className="p-4">
-            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">MINIMUM:</div>
-            <div className="text-green-700 text-xl">₹2650</div>
-          </div>
-        </Card>
-        <Card>
-          <div className="p-4">
-            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">GROWER AVG:</div>
-            <div className="text-green-700 text-xl">₹3540</div>
-          </div>
-        </Card>
-        <Card>
+       
+        
+        {/* <Card>
           <div className="p-4">
             <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">DEALER AVG:</div>
             <div className="text-green-700 text-xl">₹3550</div>
           </div>
-        </Card>
-        <Card>
-          <div className="p-4">
-            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">MAXIMUM:</div>
-            <div className="text-green-700 text-xl">₹3800</div>
-          </div>
-        </Card>
+        </Card> */}
+       
       </div>
 
       {/* Bottom Row Cards */}
@@ -151,10 +148,16 @@ const Card = ({ children, className = '' }) => (
         </Card>
         <Card>
           <div className="p-4">
+            <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">GRADE</div>
+            <div className="text-green-700 text-xl">AGS</div>
+          </div>
+        </Card>
+        {/* <Card>
+          <div className="p-4">
             <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">TOTAL QUANTITY:</div>
             <div className="text-green-700 text-xl">61,229.1 Kg</div>
           </div>
-        </Card>
+        </Card> */}
         <Card>
           <div className="p-4">
             <div className="text-xs uppercase tracking-wide text-gray-600 mb-1">PROCESSING LOT NUMBER:</div>

@@ -4,17 +4,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 
 // Replace with your deployed Google Apps Script Web App URL
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUD8WbyP2tOZZX-sz28bbPvjic1U-i-QUkjjKl23WORNj1uT-gsIO1-rs-q3GA2D4/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbGPild4vYH1Zzt3947hLnPSjYJg1Jzl5OiAsA9QeD1Ml6CBPbauWjKfJze75ZgllM/exec';
 
 // Function to fetch data from Google Apps Script
 const fetchDataFromGoogleDrive = async () => {
   try {
-    // First attempt direct fetch
     const response = await fetch(`${APPS_SCRIPT_URL}?fetchData=true`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: { 'Accept': 'application/json' },
       redirect: 'follow'
     });
 
@@ -35,10 +32,15 @@ const fetchDataFromGoogleDrive = async () => {
   }
 };
 
-// Function to format date display
-const formatDate = (year, month, week) => {
+// Function to format date display for chart (using day instead of week)
+const formatDate = (year, month, day) => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${monthNames[month-1]} ${year} (W${week})`;
+  return `${monthNames[month - 1]} ${day}, ${year}`;
+};
+
+// Function to format date in dd-mm-yyyy
+const formatDateDDMMYYYY = (year, month, day) => {
+  return `${String(day).padStart(2, '0')}-${String(month).padStart(2, '0')}-${year}`;
 };
 
 // Function to get available years from data
@@ -73,41 +75,34 @@ const aggregateByYears = (data) => {
   }));
 };
 
-// Function to filter data by time range
+// Function to filter data by time range (updated for day)
 const filterDataByTimeRange = (data, range) => {
   const now = new Date();
-  let startDate = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
-  
-  switch(range) {
+  const currentDay = now.getDate();
+
+  switch (range) {
     case '1M':
-      if (currentMonth === 1) {
-        return data.filter(item => (item.year === currentYear - 1 && item.month === 12) || 
-                                   (item.year === currentYear && item.month === currentMonth));
-      } else {
-        return data.filter(item => item.year === currentYear && 
-                                   (item.month === currentMonth || item.month === currentMonth - 1));
-      }
+      const oneMonthAgo = new Date(now.setMonth(now.getMonth() - 1));
+      return data.filter(item => {
+        const itemDate = new Date(item.year, item.month - 1, item.day);
+        return itemDate >= oneMonthAgo;
+      });
     case '3M':
-      if (currentMonth <= 3) {
-        return data.filter(item => (item.year === currentYear - 1 && item.month > 12 - (3 - currentMonth)) || 
-                                   (item.year === currentYear && item.month <= currentMonth));
-      } else {
-        return data.filter(item => item.year === currentYear && 
-                                   item.month > currentMonth - 3 && item.month <= currentMonth);
-      }
+      const threeMonthsAgo = new Date(now.setMonth(now.getMonth() - 3));
+      return data.filter(item => {
+        const itemDate = new Date(item.year, item.month - 1, item.day);
+        return itemDate >= threeMonthsAgo;
+      });
     case '6M':
-      if (currentMonth <= 6) {
-        return data.filter(item => (item.year === currentYear - 1 && item.month > 12 - (6 - currentMonth)) || 
-                                   (item.year === currentYear && item.month <= currentMonth));
-      } else {
-        return data.filter(item => item.year === currentYear && 
-                                   item.month > currentMonth - 6 && item.month <= currentMonth);
-      }
+      const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
+      return data.filter(item => {
+        const itemDate = new Date(item.year, item.month - 1, item.day);
+        return itemDate >= sixMonthsAgo;
+      });
     case '1Y':
-      return data.filter(item => item.year === currentYear || 
-                                 (item.year === currentYear - 1 && item.month >= currentMonth));
+      return data.filter(item => item.year >= currentYear - 1);
     case '3Y':
       return data.filter(item => item.year >= currentYear - 3);
     case '5Y':
@@ -118,27 +113,36 @@ const filterDataByTimeRange = (data, range) => {
   }
 };
 
-// Function to prepare data for chart
+// Function to prepare data for chart (updated for day)
 const prepareChartData = (data, viewMode) => {
   if (viewMode === 'yearly') {
     return aggregateByYears(data);
   } else {
     return data.map(item => ({
-      name: formatDate(item.year, item.month, item.week),
+      name: formatDate(item.year, item.month, item.day),
       'Max Price': item.minPrice,
       'Avg Price': item.avrPrice
     }));
   }
 };
 
-// Fallback data in case API fails
+// Function to prepare 7-day trend data (updated for day)
+const prepareSevenDayTrendData = (data) => {
+  const lastSeven = data.slice(-7).map(item => ({
+    name: formatDateDDMMYYYY(item.year, item.month, item.day),
+    'Avg Price': item.avrPrice
+  }));
+  return lastSeven;
+};
+
+// Fallback data updated to use day instead of week
 const getFallbackData = () => {
   return [
-    {year: 2023, month: 1, week: 1, minPrice: 1200, avrPrice: 1000},
-    {year: 2023, month: 2, week: 1, minPrice: 1250, avrPrice: 1050},
-    {year: 2023, month: 3, week: 1, minPrice: 1300, avrPrice: 1100},
-    {year: 2023, month: 4, week: 1, minPrice: 1350, avrPrice: 1150},
-    {year: 2023, month: 5, week: 1, minPrice: 1400, avrPrice: 1200},
+    { year: 2023, month: 1, day: 1, minPrice: 1200, avrPrice: 1000 },
+    { year: 2023, month: 1, day: 15, minPrice: 1250, avrPrice: 1050 },
+    { year: 2023, month: 2, day: 1, minPrice: 1300, avrPrice: 1100 },
+    { year: 2023, month: 2, day: 15, minPrice: 1350, avrPrice: 1150 },
+    { year: 2023, month: 3, day: 1, minPrice: 1400, avrPrice: 1200 },
   ];
 };
 
@@ -152,9 +156,9 @@ const CardamomPriceTracker = () => {
   const [timeRange, setTimeRange] = useState('ALL');
   const [viewMode, setViewMode] = useState('all');
   const [showPriceHistory, setShowPriceHistory] = useState(false);
-  // New state for toggling between max and avg price
   const [priceView, setPriceView] = useState('avg');
-  
+  const [trendData, setTrendData] = useState([]);
+
   // Fetch data on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -168,29 +172,28 @@ const CardamomPriceTracker = () => {
           throw new Error('No data found in the spreadsheet');
         }
 
-        // Filter out invalid data and ensure numeric values
         const validData = fetchedData
           .filter(item => 
-            item.year && item.month && item.week && 
+            item.year && item.month && item.day && 
             !isNaN(item.minPrice) && !isNaN(item.avrPrice)
           )
           .map(item => ({
             year: Number(item.year),
             month: Number(item.month),
-            week: Number(item.week),
+            day: Number(item.day),
             minPrice: Number(item.minPrice),
             avrPrice: Number(item.avrPrice)
           }));
 
-        // Sort data by date
         const sortedData = validData.sort((a, b) => {
-          if (a.year !== b.year) return a.year - b.year;
-          if (a.month !== b.month) return a.month - b.month;
-          return a.week - b.week;
+          const dateA = new Date(a.year, a.month - 1, a.day);
+          const dateB = new Date(b.year, b.month - 1, b.day);
+          return dateA - dateB;
         });
         
         setData(sortedData);
         setChartData(prepareChartData(sortedData, viewMode));
+        setTrendData(prepareSevenDayTrendData(sortedData));
         setDataSource('live');
         setIsLoading(false);
       } catch (err) {
@@ -200,6 +203,7 @@ const CardamomPriceTracker = () => {
         const fallbackData = getFallbackData();
         setData(fallbackData);
         setChartData(prepareChartData(fallbackData, viewMode));
+        setTrendData(prepareSevenDayTrendData(fallbackData));
         setDataSource('fallback');
         setIsLoading(false);
       }
@@ -207,32 +211,32 @@ const CardamomPriceTracker = () => {
     
     loadData();
   }, []);
-  
+
   // Update chart data when time range or view mode changes
   useEffect(() => {
     if (data.length > 0) {
       const filteredData = filterDataByTimeRange(data, timeRange);
       setChartData(prepareChartData(filteredData, viewMode));
+      setTrendData(prepareSevenDayTrendData(data)); // Always show last 7 entries for trend
     }
   }, [timeRange, viewMode, data]);
-  
+
   const handleTimeRangeChange = (range) => {
     setTimeRange(range);
   };
-  
+
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
   };
-  
+
   const togglePriceHistory = () => {
     setShowPriceHistory(!showPriceHistory);
   };
 
-  // Toggle between max price and avg price view
   const togglePriceView = () => {
     setPriceView(priceView === 'avg' ? 'max' : 'avg');
   };
-  
+
   const handleRefreshData = async () => {
     setIsLoading(true);
     setError(null);
@@ -246,25 +250,26 @@ const CardamomPriceTracker = () => {
 
       const validData = fetchedData
         .filter(item => 
-          item.year && item.month && item.week && 
+          item.year && item.month && item.day && 
           !isNaN(item.minPrice) && !isNaN(item.avrPrice)
         )
         .map(item => ({
           year: Number(item.year),
           month: Number(item.month),
-          week: Number(item.week),
+          day: Number(item.day),
           minPrice: Number(item.minPrice),
           avrPrice: Number(item.avrPrice)
         }));
 
       const sortedData = validData.sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        if (a.month !== b.month) return a.month - b.month;
-        return a.week - b.week;
+        const dateA = new Date(a.year, a.month - 1, a.day);
+        const dateB = new Date(b.year, b.month - 1, b.day);
+        return dateA - dateB;
       });
       
       setData(sortedData);
       setChartData(prepareChartData(sortedData, viewMode));
+      setTrendData(prepareSevenDayTrendData(sortedData));
       setDataSource('live');
       setIsLoading(false);
     } catch (err) {
@@ -274,9 +279,16 @@ const CardamomPriceTracker = () => {
     }
   };
 
-  // Handle back button click
   const handleBackClick = () => {
     navigate('/Pricesm1');
+  };
+
+  // Calculate trend direction
+  const getTrendDirection = () => {
+    if (trendData.length < 2) return 'neutral';
+    const latestPrice = trendData[trendData.length - 1]['Avg Price'];
+    const earliestPrice = trendData[0]['Avg Price'];
+    return latestPrice > earliestPrice ? 'up' : latestPrice < earliestPrice ? 'down' : 'neutral';
   };
 
   if (isLoading) {
@@ -292,10 +304,10 @@ const CardamomPriceTracker = () => {
 
   const currentData = data.length > 0 ? data[data.length - 1] : null;
   const previousData = data.length > 1 ? data[data.length - 2] : null;
+  const trendDirection = getTrendDirection();
 
   return (
     <div className="container mt-4">
-      {/* Back Button */}
       <button 
         className="btn btn-secondary mb-3" 
         onClick={handleBackClick}
@@ -363,7 +375,6 @@ const CardamomPriceTracker = () => {
             </div>
           </div>
           
-          {/* Toggle Button for Max/Avg Price */}
           <div className="mb-3 text-center">
             <button 
               className="btn btn-primary"
@@ -373,7 +384,6 @@ const CardamomPriceTracker = () => {
             </button>
           </div>
 
-          {/* Graph with reduced height */}
           <div style={{ height: "300px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -416,9 +426,6 @@ const CardamomPriceTracker = () => {
                   <thead>
                     <tr>
                       <th>Date</th>
-                      <th>Year</th>
-                      <th>Month</th>
-                      <th>Week</th>
                       <th>Max Price (₹/Kg)</th>
                       <th>Avg Price (₹/Kg)</th>
                     </tr>
@@ -426,16 +433,13 @@ const CardamomPriceTracker = () => {
                   <tbody>
                     {filterDataByTimeRange(data, timeRange)
                       .sort((a, b) => {
-                        if (a.year !== b.year) return b.year - a.year;
-                        if (a.month !== b.month) return b.month - a.month;
-                        return b.week - a.week;
+                        const dateA = new Date(a.year, a.month - 1, a.day);
+                        const dateB = new Date(b.year, b.month - 1, b.day);
+                        return dateB - dateA; // Descending order
                       })
                       .map((item, index) => (
                         <tr key={index}>
-                          <td>{formatDate(item.year, item.month, item.week)}</td>
-                          <td>{item.year}</td>
-                          <td>{item.month}</td>
-                          <td>{item.week}</td>
+                          <td>{formatDateDDMMYYYY(item.year, item.month, item.day)}</td>
                           <td>{item.minPrice.toFixed(2)}</td>
                           <td>{item.avrPrice.toFixed(2)}</td>
                         </tr>
@@ -446,7 +450,6 @@ const CardamomPriceTracker = () => {
             </div>
           )}
 
-          {/* Compact Stats Section */}
           <div className="row mt-3">
             {/* Current Pricing */}
             <div className="col-md-6 mb-3">
@@ -476,7 +479,7 @@ const CardamomPriceTracker = () => {
                   </div>
                 </div>
                 <div className="col-md-6">
-                  <div className="card bg-light">
+                  <div className="card bg-light mb-2">
                     <div className="card-body py-2">
                       <h6 className="card-title mb-1">Average Price</h6>
                       <h4 className="text-success mb-1">
@@ -498,6 +501,36 @@ const CardamomPriceTracker = () => {
                     </div>
                   </div>
                 </div>
+                {/* 7-Day Trend Card */}
+                <div className="col-md-12">
+                  <div className="card bg-light">
+                    <div className="card-body py-2">
+                      <h6 className="card-title mb-1">7-Day Price Trend</h6>
+                      <div style={{ height: "100px" }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={trendData}
+                            margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                          >
+                            <XAxis dataKey="name" hide />
+                            <YAxis hide />
+                            <Tooltip formatter={(value) => `₹${value}`} />
+                            <Line 
+                              type="monotone" 
+                              dataKey="Avg Price" 
+                              stroke={trendDirection === 'up' ? '#00B894' : trendDirection === 'down' ? '#FF6B6B' : '#8884d8'} 
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <p className="text-muted small mb-0">
+                        Trend: {trendDirection === 'up' ? 'Increasing' : trendDirection === 'down' ? 'Decreasing' : 'Stable'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -514,8 +547,9 @@ const CardamomPriceTracker = () => {
                         const yearData = data.filter(item => item.year === currentYear);
                         const startOfYear = yearData.length > 0 ? 
                             yearData.sort((a, b) => {
-                              if (a.month !== b.month) return a.month - b.month;
-                              return a.week - b.week;
+                              const dateA = new Date(a.year, a.month - 1, a.day);
+                              const dateB = new Date(b.year, b.month - 1, b.day);
+                              return dateA - dateB;
                             })[0] :
                             data[0];
                         const current = currentData;
@@ -583,7 +617,7 @@ const CardamomPriceTracker = () => {
           <div className="mt-3">
             <p className="text-muted">
               <small>
-                Last updated: {currentData ? formatDate(currentData.year, currentData.month, currentData.week) : 'N/A'} | 
+                Last updated: {currentData ? formatDate(currentData.year, currentData.month, currentData.day) : 'N/A'} | 
                 Data source: {dataSource === 'live' ? 'Google Sheets API' : dataSource === 'fallback' ? 'Fallback Data' : 'Loading Failed'}
               </small>
             </p>

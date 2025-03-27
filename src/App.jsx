@@ -29,6 +29,8 @@ import CardamomPriceTracker from './CardamomPriceTracker'
 import AuctionLotAdd from './AuctionLotAdd'
 import LotApproval from './LotApproval'
 import BiddingPage from './BiddingPage'
+import AuctionDetails from './AuctionDetails'
+import BiddingPage1 from './BiddingPage1'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -43,8 +45,8 @@ function App() {
             <Route path='/Home' Component={Home}></Route>
             <Route path='/Homes' Component={Homes}></Route>
             <Route path='/Pricesm1' Component={Pricesm1}></Route>
-            {/* <Route path='/Pricesm' Component={Pricesm}></Route>
-            <Route path='/Pricela' Component={Pricela}></Route> */}
+             <Route path='/AuctionDetails' Component={AuctionDetails}></Route>
+            {/* <Route path='/Pricela' Component={Pricela}></Route>  */}
             <Route path='/AuctionPage' Component={AuctionPage}></Route>
             <Route path='/DashboardPage' Component={DashboardPage}></Route>
             <Route path='/Otpv' Component={Otpv}></Route>
@@ -63,6 +65,7 @@ function App() {
             <Route path='/CardamomPriceTracker' Component={CardamomPriceTracker}></Route>
             <Route path='/AuctionLotAdd' Component={AuctionLotAdd}></Route>
             <Route path='/BiddingPage' Component={BiddingPage}></Route>
+            <Route path='/BiddingPage1' Component={BiddingPage1}></Route>
           </Routes>
         </Router>
      

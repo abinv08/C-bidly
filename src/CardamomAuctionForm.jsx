@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { firestore, auth } from './Firebase';
-import './CardamomAuctionForm.css';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 const CardamomAuctionForm = () => {
@@ -116,15 +115,14 @@ const CardamomAuctionForm = () => {
       </div>
     );
   }
-  
 
   return (
-    <div className="auction-container">
-      <div className="form-container-c">
+    <div className="w-full min-h-screen bg-gray-100 bg-opacity-15 -mt-12">
+      <div className="max-w-xl mx-auto my-8 p-8 text-center">
         <br />
-        <div className="register-box">
-          <h2>AUCTION REGISTRATION</h2>
-          <form onSubmit={handleSubmit}>
+        <div className="bg-[#8ab84d] p-8 rounded-lg shadow-md">
+          <h2 className="text-white mb-6">AUCTION REGISTRATION</h2>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               type="text"
               name="name"
@@ -132,6 +130,7 @@ const CardamomAuctionForm = () => {
               value={formData.name}
               onChange={handleChange}
               required
+              className="p-3 border-none rounded text-base bg-gray-100"
             />
             <input
               type="text"
@@ -140,6 +139,7 @@ const CardamomAuctionForm = () => {
               value={formData.gst}
               onChange={handleChange}
               required
+              className="p-3 border-none rounded text-base bg-gray-100"
             />
             <input
               type="text"
@@ -148,12 +148,14 @@ const CardamomAuctionForm = () => {
               value={formData.license}
               onChange={handleChange}
               required
+              className="p-3 border-none rounded text-base bg-gray-100"
             />
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
               required
+              className="p-3 border-none rounded text-base bg-gray-100 cursor-pointer"
             >
               <option value="">Select Role</option>
               <option value="buyer">BUYER</option>
@@ -162,7 +164,7 @@ const CardamomAuctionForm = () => {
 
             {formData.role === 'buyer' && (
               <div>
-                <label htmlFor="image" className="image-label">
+                <label htmlFor="image" className="text-white block mb-2">
                   Bank Proof (5 Cr Security Deposit)
                 </label>
                 <input
@@ -172,14 +174,18 @@ const CardamomAuctionForm = () => {
                   accept="image/*"
                   onChange={handleImageChange}
                   required={formData.role === 'buyer'}
+                  className="w-full text-white"
                 />
                 {formData.image && (
-                  <p className="image-label">Selected file: {formData.image.name}</p>
+                  <p className="text-white mt-2">Selected file: {formData.image.name}</p>
                 )}
               </div>
             )}
             
-            <button type="submit" className="verify-btn">
+            <button 
+              type="submit" 
+              className="bg-[#4285f4] text-white p-3 border-none rounded text-base cursor-pointer transition-colors duration-300 hover:bg-[#3367d6] mt-4"
+            >
               Verify
             </button>
           </form>

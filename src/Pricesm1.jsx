@@ -105,7 +105,7 @@ useEffect(() => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/Home');
+      navigate('/');
     } catch (error) {
       console.error("Error during logout:", error);
     }

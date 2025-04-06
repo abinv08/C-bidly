@@ -69,11 +69,12 @@ const Card = ({ children, className = '' }) => (
       const auth = getAuth();
       try {
         await signOut(auth);
-        navigate('/Home');
+        navigate('/');
       } catch (error) {
         console.error("Error during logout:", error);
       }
     };
+    
   return (
     <>
     <div className="max-w-6xl mx-auto p-6 bg-gray-50">

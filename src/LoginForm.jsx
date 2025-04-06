@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import {  useNavigate } from 'react-router-dom';
-import './index.css';
+import { useNavigate } from 'react-router-dom';
+// import './index.css'; // You can keep this if other non-Tailwind styles are still needed
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from './Firebase';
 import { toast } from 'react-toastify';
@@ -14,7 +14,6 @@ const LoginForm = () => {
 
   const googleLogin = async () => {
     const provider = new GoogleAuthProvider();
-
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -22,100 +21,70 @@ const LoginForm = () => {
       sessionStorage.setItem('userName', user.displayName);
       sessionStorage.setItem('userPhoto', user.photoURL);
 
-      toast.success('Logged in successfully!', {
-        position: 'top-center',
-      });
-
+      toast.success('Logged in successfully!', { position: 'top-center' });
       navigate('/Homes');
     } catch (error) {
       console.error('Error signing in with Google:', error);
-      toast.error('Google login failed. Please try again.', {
-        position: 'top-center',
-      });
+      toast.error('Google login failed. Please try again.', { position: 'top-center' });
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    
-    // Check for admin credentials
     if (email.toLowerCase() === 'admin' && pass === '12345678') {
-      toast.success("Admin Login Successful", {
-        position: "top-center",
-      });
-      // Store admin status in session if needed
+      toast.success("Admin Login Successful", { position: "top-center" });
       sessionStorage.setItem('isAdmin', 'true');
       navigate("/DashboardPage");
       return;
     }
 
-    // Regular user authentication
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
       if (userCredential) {
-        toast.success("Login Successful", {
-          position: "top-center",
-        });
+        toast.success("Login Successful", { position: "top-center" });
         sessionStorage.setItem('isAdmin', 'false');
         navigate("/Homes");
       }
     } catch (error) {
       const errorCode = error.code;
       let errorMessage = "Login failed. Incorrect password. Please try again.";
-
-      if (errorCode === "auth/user-not-found") {
-        errorMessage = "No user found with this email address.";
-      } else if (errorCode === "auth/wrong-password") {
-        errorMessage = "Incorrect password. Please try again.";
-      } else if (errorCode === "auth/invalid-email") {
-        errorMessage = "The email address is not valid.";
-      }
-
-      toast.error(errorMessage, {
-        position: "top-center",
-      });
-      alert(errorMessage)
+      if (errorCode === "auth/user-not-found") errorMessage = "No user found with this email address.";
+      else if (errorCode === "auth/wrong-password") errorMessage = "Incorrect password. Please try again.";
+      else if (errorCode === "auth/invalid-email") errorMessage = "The email address is not valid.";
+      toast.error(errorMessage, { position: "top-center" });
+      alert(errorMessage);
     }
   };
 
   const handleForgotPassword = async () => {
     if (!emailForReset) {
-      toast.error("Please enter your email address.", {
-        position: "top-center",
-      });
+      toast.error("Please enter your email address.", { position: "top-center" });
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, emailForReset);
-      toast.success("Password reset email sent. Check your inbox.", {
-        position: "top-center",
-      });
+      toast.success("Password reset email sent. Check your inbox.", { position: "top-center" });
       setResetModal(false);
     } catch (error) {
       const errorCode = error.code;
       let errorMessage = "Error resetting password. Please try again later.";
-
-      if (errorCode === "auth/user-not-found") {
-        errorMessage = "No user found with this email address.";
-      }
-
-      toast.error(errorMessage, {
-        position: "top-center",
-      });
+      if (errorCode === "auth/user-not-found") errorMessage = "No user found with this email address.";
+      toast.error(errorMessage, { position: "top-center" });
     }
   };
+
   const handleSignUpRedirect = () => {
     navigate('/Sign');
   };
+
   return (
-    <div className="form-container">
-      <p className="title">Welcome back</p>
-      <br />
-      <form className="form">
+    <div className="w-[350px] h-[550px] bg-white shadow-[0_5px_15px_rgba(0,0,0,0.35)] rounded-[10px] box-border p-[20px_30px] ml-[35em]">
+      <p className="text-center font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif] my-[10px_0_30px_0] text-[28px] font-extrabold">Welcome back</p>
+      <br /><br />
+      <form className="w-full flex flex-col gap-[18px] mb-[15px]">
         <input
           type="email"
-          className="input"
+          className="rounded-[20px] border border-[#c0c0c0] outline-none box-border p-[12px_15px]"
           placeholder="Email:"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -123,36 +92,37 @@ const LoginForm = () => {
         />
         <input
           type="password"
-          className="input"
+          className="rounded-[20px] border border-[#c0c0c0] outline-none box-border p-[12px_15px]"
           placeholder="Password"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
           required
         />
-        <p className="page-link" onClick={() => setResetModal(true)}>
-          <span className="page-link-label">Forgot Password?</span>
+        <p className="underline text-right text-[#747474]" onClick={() => setResetModal(true)}>
+          <span className="cursor-pointer font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif] text-[9px] font-bold hover:text-black">Forgot Password?</span>
         </p>
-        <button type="submit" className="form-btn" onClick={handleLogin}>
+        <button
+          type="submit"
+          className="p-[10px_15px] font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif] rounded-[20px] border-none outline-none bg-teal-500 text-white cursor-pointer shadow-[0_3px_8px_rgba(0,0,0,0.24)] active:shadow-none"
+          onClick={handleLogin}
+        >
           Log in
         </button>
       </form>
-      {/* <p className="sign-up-label">
+      <p className="m-0 text-[10px] text-[#747474] font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif]">
         Don't have an account?{' '}
-        <Link to="/Sign" className="sign-up-link">
+        <span
+          className="ml-[1px] text-[11px] underline text-teal-500 cursor-pointer font-extrabold font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif]"
+          onClick={handleSignUpRedirect}
+        >
           Sign up
-        </Link>
-      </p> */}
-        <p className="sign-up-label">
-      Don't have an account?{' '}
-      <span 
-        className="sign-up-link cursor-pointer"
-        onClick={handleSignUpRedirect}
-      >
-        Sign up
-      </span>
-     </p>
-      <div className="buttons-container">
-        <div className="google-login-button" onClick={googleLogin}>
+        </span>
+      </p>
+      <div className="w-full flex flex-col justify-start mt-[20px] gap-[15px]">
+        <div
+          className="rounded-[20px] box-border p-[10px_15px] shadow-[0_10px_36px_rgba(0,0,0,0.16),0_0_0_1px_rgba(0,0,0,0.06)] cursor-pointer flex justify-center items-center font-['Lucida_Sans','Lucida_Sans_Regular','Lucida_Grande','Lucida_Sans_Unicode',Geneva,Verdana,sans-serif] text-[11px] gap-[5px] border-2 border-[#747474]"
+          onClick={googleLogin}
+        >
           <svg
             stroke="currentColor"
             fill="currentColor"
@@ -160,7 +130,7 @@ const LoginForm = () => {
             version="1.1"
             x="0px"
             y="0px"
-            className="google-icon"
+            className="text-[18px] mb-[1px]"
             viewBox="0 0 48 48"
             height="1em"
             width="1em"
@@ -186,34 +156,35 @@ const LoginForm = () => {
           <span>Log in with Google</span>
         </div>
       </div>
-          {resetModal && (
-           <div className="reset-password-modal">
-           <div className="modal-content">
-            <h2>Reset Password</h2>
-             <input
-               type="email"
-                  className="input"
-                  placeholder="Enter your email"
-                  value={emailForReset}
-                  onChange={(e) => setEmailForReset(e.target.value)}
-                 />
-      <div className="modal-buttons">
-        <button 
-          className="reset-button" 
-          onClick={handleForgotPassword}
-        >
-          Send Reset Email
-        </button>
-        <button 
-          className="cancel-button" 
-          onClick={() => setResetModal(false)}
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      {resetModal && (
+        <div className="fixed inset-0 w-full h-full flex justify-center items-center bg-[rgba(0,0,0,0.5)] z-[1000]">
+          <div className="bg-white p-5 rounded-lg text-center w-[90%] max-w-[350px] shadow-[0_4px_6px_rgba(0,0,0,0.1)] mr-[55px]">
+
+            <h2 className="mb-4 text-center font-extrabold">Reset Password</h2>
+            <input
+              type="email"
+              className="rounded-[20px] border border-[#c0c0c0] outline-none box-border p-[12px_15px] mb-4 w-full"
+              placeholder="Enter your email"
+              value={emailForReset}
+              onChange={(e) => setEmailForReset(e.target.value)}
+            />
+            <div className="flex justify-between mt-4">
+              <button
+                className="p-[10px_15px] border-none rounded-md cursor-pointer bg-[#4CAF50] text-white"
+                onClick={handleForgotPassword}
+              >
+                Send Reset Email
+              </button>
+              <button
+                className="p-[10px_15px] border-none rounded-md cursor-pointer bg-[#f44336] text-white"
+                onClick={() => setResetModal(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

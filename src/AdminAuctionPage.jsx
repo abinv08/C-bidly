@@ -5,8 +5,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { getFirestore, collection, getDocs, doc, deleteDoc, query, orderBy, onSnapshot, updateDoc, setDoc } from 'firebase/firestore';
 
 const AuctionAdminDashboard = () => {
-
-
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -26,18 +24,18 @@ const AuctionAdminDashboard = () => {
       try {
         const db = getFirestore();
         const auctionRef = doc(db, "cardamomAuctions", auctionId);
-        
+
         const auctionSnap = await getDocs(query(collection(db, "cardamomAuctions"), orderBy("createdAt", "desc")));
         let auctionData = null;
-        
+
         auctionSnap.forEach((doc) => {
           if (doc.id === auctionId) {
             auctionData = { id: doc.id, ...doc.data() };
           }
         });
-        
+
         if (!auctionData) throw new Error("Auction data not found");
-        
+
         await updateDoc(auctionRef, { status: 'active', lastUpdated: new Date() });
         const publishedAuctionRef = doc(db, "auctionlotpub", auctionId);
         await setDoc(publishedAuctionRef, {
@@ -46,10 +44,8 @@ const AuctionAdminDashboard = () => {
           publishedAt: new Date(),
           lastUpdated: new Date()
         });
-        
-        // Just show a success message without navigation
+
         alert("Auction published successfully!");
-        
       } catch (error) {
         console.error("Error publishing auction:", error);
         alert("Failed to publish auction. Please try again.");
@@ -57,12 +53,11 @@ const AuctionAdminDashboard = () => {
     }
   };
 
-
   useEffect(() => {
     const db = getFirestore();
     const auctionsCollection = collection(db, "cardamomAuctions");
     const q = query(auctionsCollection, orderBy("createdAt", "desc"));
-    
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       try {
         const auctionData = [];
@@ -71,18 +66,17 @@ const AuctionAdminDashboard = () => {
           auctionData.push({
             id: doc.id,
             ...data,
-            createdAt: data.createdAt instanceof Date ? data.createdAt : 
-                      data.createdAt && data.createdAt.seconds ? new Date(data.createdAt.seconds * 1000) : 
-                      new Date(),
+            createdAt: data.createdAt instanceof Date ? data.createdAt :
+              data.createdAt && data.createdAt.seconds ? new Date(data.createdAt.seconds * 1000) :
+                new Date(),
           });
         });
-        
+
         setAuctions(auctionData);
         calculateStats(auctionData);
-        
-        // Set the most recent date as selected by default
+
         if (auctionData.length > 0) {
-          const dates = auctionData.map(auction => 
+          const dates = auctionData.map(auction =>
             auction.createdAt ? auction.createdAt.toDateString() : 'Unknown Date'
           );
           const uniqueDates = [...new Set(dates)].sort((a, b) => {
@@ -90,12 +84,12 @@ const AuctionAdminDashboard = () => {
             if (b === 'Unknown Date') return -1;
             return new Date(b) - new Date(a);
           });
-          
+
           if (uniqueDates.length > 0) {
             setSelectedDate(uniqueDates[0]);
           }
         }
-        
+
         setLoading(false);
       } catch (err) {
         console.error("Error processing auctions:", err);
@@ -147,7 +141,7 @@ const AuctionAdminDashboard = () => {
       totalParticipates: auction.totalParticipates || '',
       totalLots: auction.totalLots || '',
       lotDetails: {
-        grade: auction.lotDetails?.grade || '',  // Added grade to lotDetails
+        grade: auction.lotDetails?.grade || '',
         totalQuantity: auction.lotDetails?.totalQuantity || '',
         numberOfBags: auction.lotDetails?.numberOfBags || '',
         bagSize: auction.lotDetails?.bagSize || '',
@@ -180,18 +174,17 @@ const AuctionAdminDashboard = () => {
     return groups;
   }, {});
 
-  // Get better formatted date labels for display
   const getDateLabel = (dateString) => {
     if (dateString === 'Unknown Date') return 'Unknown Date';
-    
+
     const today = new Date().toDateString();
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayString = yesterday.toDateString();
-    
+
     if (dateString === today) return 'Today';
     if (dateString === yesterdayString) return 'Yesterday';
-    
+
     return dateString;
   };
 
@@ -203,53 +196,41 @@ const AuctionAdminDashboard = () => {
 
   const filteredAuctions = selectedDate ? groupedAuctions[selectedDate] : auctions;
 
-  // State for auction details popup
   const [showDetailsPopup, setShowDetailsPopup] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [updatedFields, setUpdatedFields] = useState({});
-  
-  // Add this state to track if update has been performed
   const [hasBeenUpdated, setHasBeenUpdated] = useState(false);
-  
-  // Modified handleViewDetails function
+
   const handleViewDetails = (auction) => {
-    // Calculate average price based on min and max
     const minPrice = parseFloat(auction.minimum || 0);
     const maxPrice = parseFloat(auction.maximum || 0);
     const avgPrice = (minPrice + maxPrice) / 2;
-    
+
     const auctionWithAvg = {
       ...auction,
       auctionAvg: String(avgPrice)
     };
-    
+
     setSelectedAuction(auctionWithAvg);
-    
-    // Initialize updatedFields with the calculated average price
     setUpdatedFields({
       auctionAvg: String(avgPrice)
     });
-    
-    // Reset the update status when opening a new auction
     setHasBeenUpdated(false);
-    
     setShowDetailsPopup(true);
   };
-  
-  // Modified handleUpdateAuction function
+
   const handleUpdateAuction = async () => {
     if (!selectedAuction || Object.keys(updatedFields).length === 0) return;
-    
+
     try {
       const db = getFirestore();
       const auctionRef = doc(db, "cardamomAuctions", selectedAuction.id);
-      
+
       await updateDoc(auctionRef, {
         ...updatedFields,
         lastUpdated: new Date()
       });
-      
-      // If auction is active, also update in public collection
+
       if (selectedAuction.status === 'active') {
         const publishedAuctionRef = doc(db, "auctionlotpub", selectedAuction.id);
         await updateDoc(publishedAuctionRef, {
@@ -257,14 +238,9 @@ const AuctionAdminDashboard = () => {
           lastUpdated: new Date()
         });
       }
-      
-      // Set the updated flag to true
+
       setHasBeenUpdated(true);
-      
       alert("Auction updated successfully!");
-      
-      // We don't close the popup anymore to allow publishing after update
-      // setShowDetailsPopup(false);
     } catch (error) {
       console.error("Error updating auction:", error);
       alert("Failed to update auction. Please try again.");
@@ -272,14 +248,30 @@ const AuctionAdminDashboard = () => {
   };
 
   const handleFieldChange = (field, value) => {
-    setUpdatedFields({
-      ...updatedFields,
-      [field]: value
-    });
+    if (field === 'auctionCenter') {
+      setUpdatedFields({
+        ...updatedFields,
+        auctionCenter: value
+      });
+    } else if (field.startsWith('lotDetails.')) {
+      const lotField = field.split('.')[1];
+      setUpdatedFields({
+        ...updatedFields,
+        lotDetails: {
+          ...updatedFields.lotDetails,
+          [lotField]: value
+        }
+      });
+    } else {
+      setUpdatedFields({
+        ...updatedFields,
+        [field]: value
+      });
+    }
   };
-  
+
   const getStatusBadge = (status) => {
-    switch(status) {
+    switch (status) {
       case 'pending': return <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Pending</span>;
       case 'active': return <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Active</span>;
       case 'closed': return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">Closed</span>;
@@ -287,9 +279,7 @@ const AuctionAdminDashboard = () => {
     }
   };
 
-  // Add this validation function
   const isAuctionReadyToPublish = (auction) => {
-    // Check required fields
     const requiredFields = [
       auction.auctionNo,
       auction.auctionCenter,
@@ -298,15 +288,14 @@ const AuctionAdminDashboard = () => {
       auction.minimum,
       auction.maximum
     ];
-    
-    // Check lot details
-    const hasRequiredLotDetails = 
-      auction.lotDetails && 
-      auction.lotDetails.lotNumber && 
-      auction.lotDetails.grade && 
-      auction.lotDetails.numberOfBags && 
+
+    const hasRequiredLotDetails =
+      auction.lotDetails &&
+      auction.lotDetails.lotNumber &&
+      auction.lotDetails.grade &&
+      auction.lotDetails.numberOfBags &&
       auction.lotDetails.bagSize;
-    
+
     return requiredFields.every(field => field && field.toString().trim() !== '') && hasRequiredLotDetails;
   };
 
@@ -318,11 +307,11 @@ const AuctionAdminDashboard = () => {
           <p className="text-gray-600"></p>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card><CardContent className="flex items-center p-4"><FaCalendarAlt className="w-6 h-6 text-blue-500 mr-3" /><div><p className="text-sm text-gray-600">Active Auctions</p><p className="text-xl font-bold">{stats.activeAuctions}</p></div></CardContent></Card>
         <Card><CardContent className="flex items-center p-4"><FaBox className="w-6 h-6 text-green-500 mr-3" /><div><p className="text-sm text-gray-600">Total Lots</p><p className="text-xl font-bold">{stats.totalLots}</p></div></CardContent></Card>
-        <Card><CardContent className="flex items-center p-4"><FaDollarSign className="w-6 h-6 text-yellow-500 mr-3" /><div><p className="text-sm text-gray-600">Average Price</p><p className="text-xl font-bold">₹{stats.averagePrice.toLocaleString(undefined, {maximumFractionDigits: 0})}</p></div></CardContent></Card>
+        <Card><CardContent className="flex items-center p-4"><FaDollarSign className="w-6 h-6 text-yellow-500 mr-3" /><div><p className="text-sm text-gray-600">Average Price</p><p className="text-xl font-bold">₹{stats.averagePrice.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p></div></CardContent></Card>
         <Card><CardContent className="flex items-center p-4"><FaUsers className="w-6 h-6 text-purple-500 mr-3" /><div><p className="text-sm text-gray-600">Total Participants</p><p className="text-xl font-bold">{stats.totalParticipants}</p></div></CardContent></Card>
       </div>
 
@@ -334,15 +323,12 @@ const AuctionAdminDashboard = () => {
               <button onClick={() => setSelectedDate(null)} className="ml-4 text-sm text-blue-600 hover:text-blue-800">Clear Filter</button>
             )}
           </div>
-          {/* <button onClick={handlePublishTodayAuctions} className="px-3 py-1 bg-green-600 text-white rounded-lg flex items-center gap-2 hover:bg-green-700">
-            <FaPlus size={12} />Publish Auction
-          </button> */}
         </div>
         <div className="flex flex-wrap gap-2">
           {auctionDates.map(date => (
-            <button 
-              key={date} 
-              onClick={() => setSelectedDate(date)} 
+            <button
+              key={date}
+              onClick={() => setSelectedDate(date)}
               className={`px-3 py-1 rounded-full text-sm ${selectedDate === date ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
             >
               {getDateLabel(date)}
@@ -426,7 +412,6 @@ const AuctionAdminDashboard = () => {
         )}</CardContent></Card>
       </div>
 
-      {/* Auction Details Popup */}
       {showDetailsPopup && selectedAuction && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -438,7 +423,7 @@ const AuctionAdminDashboard = () => {
                 </svg>
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Auction No</label>
@@ -453,9 +438,10 @@ const AuctionAdminDashboard = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Auction Center</label>
                 <select
                   className="w-full p-2 border rounded"
-                  defaultValue={selectedAuction.auctionCenter}
+                  value={updatedFields.auctionCenter || selectedAuction.auctionCenter || ''}
                   onChange={(e) => handleFieldChange('auctionCenter', e.target.value)}
                 >
+                  <option value="">Select Auction Center</option>
                   <option value="Puttady">Puttady</option>
                   <option value="Bodinayakanur">Bodinayakanur</option>
                 </select>
@@ -486,13 +472,15 @@ const AuctionAdminDashboard = () => {
                   defaultValue={selectedAuction.minimum || ''}
                   onChange={(e) => {
                     const newMin = parseFloat(e.target.value || 0);
-                    const maxPrice = parseFloat(selectedAuction.maximum || 0);
+                    const maxPrice = parseFloat(updatedFields.maximum || selectedAuction.maximum || 0);
                     const newAvg = (newMin + maxPrice) / 2;
-                    
-                    handleFieldChange('minimum', e.target.value);
-                    handleFieldChange('auctionAvg', String(newAvg));
-                    
-                    // Update the input field for average price
+
+                    setUpdatedFields(prev => ({
+                      ...prev,
+                      minimum: e.target.value,
+                      auctionAvg: String(newAvg)
+                    }));
+
                     const avgInput = document.getElementById('auctionAvgInput');
                     if (avgInput) avgInput.value = newAvg;
                   }}
@@ -505,14 +493,16 @@ const AuctionAdminDashboard = () => {
                   className="w-full p-2 border rounded"
                   defaultValue={selectedAuction.maximum || ''}
                   onChange={(e) => {
-                    const minPrice = parseFloat(selectedAuction.minimum || 0);
+                    const minPrice = parseFloat(updatedFields.minimum || selectedAuction.minimum || 0);
                     const newMax = parseFloat(e.target.value || 0);
                     const newAvg = (minPrice + newMax) / 2;
-                    
-                    handleFieldChange('maximum', e.target.value);
-                    handleFieldChange('auctionAvg', String(newAvg));
-                    
-                    // Update the input field for average price
+
+                    setUpdatedFields(prev => ({
+                      ...prev,
+                      maximum: e.target.value,
+                      auctionAvg: String(newAvg)
+                    }));
+
                     const avgInput = document.getElementById('auctionAvgInput');
                     if (avgInput) avgInput.value = newAvg;
                   }}
@@ -524,12 +514,12 @@ const AuctionAdminDashboard = () => {
                   id="auctionAvgInput"
                   type="number"
                   className="w-full p-2 border rounded bg-gray-50"
-                  defaultValue={selectedAuction.auctionAvg || ''}
+                  value={updatedFields.auctionAvg || selectedAuction.auctionAvg || ''}
                   readOnly
                 />
               </div>
             </div>
-            
+
             <div className="mb-4">
               <h3 className="font-medium mb-2">Lot Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -571,38 +561,37 @@ const AuctionAdminDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">
                 Created: {selectedAuction.createdAt ? selectedAuction.createdAt.toLocaleString() : 'Unknown date'}
               </div>
               <div className="flex gap-3">
-                <button 
-                  onClick={() => setShowDetailsPopup(false)} 
+                <button
+                  onClick={() => setShowDetailsPopup(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                 >
                   Cancel
                 </button>
-                <button 
-                  onClick={handleUpdateAuction} 
+                <button
+                  onClick={handleUpdateAuction}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Update Auction
                 </button>
                 {selectedAuction.status !== 'active' && (
-                  <button 
+                  <button
                     onClick={() => {
                       setShowDetailsPopup(false);
                       handleActivateAuction(selectedAuction.id);
-                    }} 
-                    className={`px-4 py-2 rounded ${
-                      hasBeenUpdated 
-                        ? 'bg-green-600 text-white hover:bg-green-700' 
+                    }}
+                    className={`px-4 py-2 rounded ${hasBeenUpdated
+                        ? 'bg-green-600 text-white hover:bg-green-700'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
+                      }`}
                     disabled={!hasBeenUpdated}
-                    title={!hasBeenUpdated 
-                      ? "Please update the auction first before publishing" 
+                    title={!hasBeenUpdated
+                      ? "Please update the auction first before publishing"
                       : "Publish this auction"
                     }
                   >

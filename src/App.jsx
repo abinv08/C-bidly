@@ -42,7 +42,7 @@ function App() {
             <Route path='/LoginForm' Component={LoginForm}></Route>
             {/* <Route path='/Signup' Component={Signup}></Route> */}
             <Route path='/Sign' Component={Sign}></Route>
-            <Route path='/Home' Component={Home}></Route>
+            <Route path='/' Component={Home}></Route>
             <Route path='/Homes' Component={Homes}></Route>
             <Route path='/Pricesm1' Component={Pricesm1}></Route>
              <Route path='/AuctionDetails' Component={AuctionDetails}></Route>

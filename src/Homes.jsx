@@ -9,7 +9,7 @@ const handleLogout = async () => {
   try {
     await signOut(auth);
     const navigate = useNavigate();
-    navigate('/Home');
+    navigate('/');
   } catch (error) {
     console.error("Error during logout:", error);
   }

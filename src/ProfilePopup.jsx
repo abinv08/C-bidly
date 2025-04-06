@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 
 const ProfilePopup = ({ onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,34 +10,41 @@ const ProfilePopup = ({ onLogout }) => {
   const auth = getAuth();
   const db = getFirestore();
 
-  // Fetch the user data from Firestore on component mount
+  // Fetch user data and listen to auth state changes
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Assuming the user's data is stored in a Firestore document with the ID being the user's UID
+        // User is signed in, fetch their data
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-        
         if (userDoc.exists()) {
-          // Assuming user document has a 'name' field
           setUserName(userDoc.data().name);
         }
+      } else {
+        // No user is signed in, redirect to login
+        navigate('/', { replace: true });
       }
-    };
+    });
 
-    fetchUserData();
-  }, [auth.currentUser]);
+    // Cleanup the listener on unmount
+    return () => unsubscribe();
+  }, [auth, navigate]);
 
-  const handleLogout = () => {
-    onLogout();
-    setIsOpen(false);
-    navigate('/Home');
+  // Handle logout with Firebase sign-out
+  const handleLogouts = async () => {
+    try {
+      await signOut(auth);
+      onLogout();
+      setIsOpen(false);
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const handleNavigate = (path) => {
     navigate(path);
-    setIsOpen(false); // Close popup when navigating
+    setIsOpen(false);
   };
 
   return (
@@ -64,7 +71,6 @@ const ProfilePopup = ({ onLogout }) => {
         <span className="text-gray-600 cursor-pointer">About Us</span>
         <div className="navgationdivs"></div>
         <div className="relative">
-          {/* Profile Button */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex items-center bg-gray-200 rounded-lg px-3 py-2 space-x-2"
@@ -82,11 +88,8 @@ const ProfilePopup = ({ onLogout }) => {
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            {/* Displaying the user's name dynamically */}
-            {/* <span className="text-gray-600">{userName || 'Profile'}</span> */}
           </button>
 
-          {/* Popup Menu */}
           {isOpen && (
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
               <div className="px-4 py-3 border-b border-gray-200">
@@ -105,13 +108,12 @@ const ProfilePopup = ({ onLogout }) => {
                     />
                   </svg>
                   <div>
-                    {/* Show Profile with dynamic name */}
                     <p className="text-sm font-medium text-gray-700">{userName || 'Profile'}</p>
                   </div>
                 </div>
               </div>
               <button
-                onClick={handleLogout}
+                onClick={handleLogouts}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 Logout
@@ -119,7 +121,6 @@ const ProfilePopup = ({ onLogout }) => {
             </div>
           )}
 
-          {/* Overlay to close popup when clicking outside */}
           {isOpen && (
             <div
               className="fixed inset-0 z-40"

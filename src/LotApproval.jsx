@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFirestore, collection, doc, updateDoc, addDoc, query, where, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, doc, updateDoc, addDoc, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { auth } from './Firebase'; // Adjust path as needed
 
 const LotApproval = () => {
@@ -9,20 +9,34 @@ const LotApproval = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
   const [lastLotNumber, setLastLotNumber] = useState(0);
-
+  
+  // New state for filtering
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'approvalPending', 'auctionPending'
+  const [dateFilter, setDateFilter] = useState('latest'); // 'latest', 'all', or specific date
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().substring(0, 10)); // Today's date in YYYY-MM-DD format
+  
   useEffect(() => {
     // Set up real-time listeners
     const db = getFirestore();
     
-    // Listen for all sellers
+    // Listen for all sellers with ordering by creation date
     const sellersRef = collection(db, 'sellers');
-    const unsubscribe = onSnapshot(sellersRef, (snapshot) => {
+    
+    // Create a query that orders by createdAt in descending order (newest first)
+    const sellersQuery = query(sellersRef, orderBy('createdAt', 'desc'));
+    
+    const unsubscribe = onSnapshot(sellersQuery, (snapshot) => {
       const pending = [];
       const approved = [];
       const rejected = [];
       
       snapshot.forEach((doc) => {
         const data = { id: doc.id, ...doc.data() };
+        
+        // Process data based on current filtering state
+        const shouldInclude = shouldIncludeItem(data);
+        
+        if (!shouldInclude) return;
         
         if (data.approvalStatus === 'pending') {
           pending.push(data);
@@ -61,7 +75,39 @@ const LotApproval = () => {
       unsubscribe();
       lotNumberUnsubscribe();
     };
-  }, []);
+  }, [dateFilter, selectedDate, filterStatus]); // Re-run when filter conditions change
+  
+  // Helper function to determine if an item should be included based on current filters
+  const shouldIncludeItem = (data) => {
+    // Date filtering
+    if (dateFilter === 'latest') {
+      // Only include items created today
+      if (!data.createdAt) return false;
+      
+      const itemDate = new Date(data.createdAt);
+      const today = new Date();
+      return itemDate.toDateString() === today.toDateString();
+    } else if (dateFilter === 'specific') {
+      // Only include items created on the selected date
+      if (!data.createdAt) return false;
+      
+      const itemDate = new Date(data.createdAt);
+      const filterDate = new Date(selectedDate);
+      return itemDate.toDateString() === filterDate.toDateString();
+    }
+    
+    // Status filtering - only apply to the approved items tab
+    if (activeTab === 'approved' && filterStatus !== 'all') {
+      if (filterStatus === 'approvalPending' && data.secondApproval) {
+        return false;
+      }
+      if (filterStatus === 'auctionPending' && (!data.secondApproval || data.addedToAuction)) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
 
   const handleApprove = async (lotId) => {
     try {
@@ -190,6 +236,14 @@ const LotApproval = () => {
     }
   };
 
+  // Handle tab changes and reset filters as appropriate
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab !== 'approved') {
+      setFilterStatus('all'); // Reset filter when changing to a non-approved tab
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -206,22 +260,67 @@ const LotApproval = () => {
         <div className="flex border-b border-gray-200">
           <button 
             className={`py-2 px-4 font-medium ${activeTab === 'pending' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('pending')}
+            onClick={() => handleTabChange('pending')}
           >
             Pending ({pendingLots.length})
           </button>
           <button 
             className={`py-2 px-4 font-medium ${activeTab === 'approved' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('approved')}
+            onClick={() => handleTabChange('approved')}
           >
             Approved ({approvedLots.length})
           </button>
           <button 
             className={`py-2 px-4 font-medium ${activeTab === 'rejected' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('rejected')}
+            onClick={() => handleTabChange('rejected')}
           >
             Rejected ({rejectedLots.length})
           </button>
+        </div>
+      </div>
+      
+      {/* Filtering controls */}
+      <div className="bg-gray-100 p-4 rounded-lg mb-6">
+        <div className="flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date Filter</label>
+            <select 
+              value={dateFilter} 
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="latest">Today Only</option>
+              <option value="all">All Dates</option>
+              <option value="specific">Specific Date</option>
+            </select>
+          </div>
+          
+          {dateFilter === 'specific' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Select Date</label>
+              <input 
+                type="date" 
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
+          
+          {activeTab === 'approved' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status Filter</label>
+              <select 
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Approved</option>
+                <option value="approvalPending">Approval Pending (First Approval Only)</option>
+                <option value="auctionPending">Auction Pending (Second Approval Done)</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
       

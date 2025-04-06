@@ -6,6 +6,7 @@ import { firestore } from './Firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
 
+
 const Card = ({ children, className = '' }) => (
     <div className={`bg-white rounded-xl border border-gray-200 ${className}`}>
       {children}
@@ -57,7 +58,7 @@ const AuctionPage = () => {
     const auth = getAuth();
     try {
       await signOut(auth);
-      navigate('/Home');
+      navigate('/');
     } catch (error) {
       console.error("Error during logout:", error);
     }

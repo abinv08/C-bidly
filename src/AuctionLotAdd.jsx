@@ -6,7 +6,8 @@ import ProfilePopup from './ProfilePopup';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const AuctionLotAdd = () => {
-  const [displayMode, setDisplayMode] = useState('default'); // 'default', 'sellerForm', 'status', 'myLots'
+  // Changed initial state from 'default' to 'sellerForm' to show the form by default
+  const [displayMode, setDisplayMode] = useState('sellerForm'); 
   const [formData, setFormData] = useState({
     sellerName: '',
     grade: '',
@@ -23,16 +24,11 @@ const AuctionLotAdd = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/Home');
+      navigate('/');
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
-  // const handleLogout = () => {
-  //   onLogout();
-  //   setIsOpen(false);
-  //   navigate('/Home');
-  // };
 
   // Modified fetchUserLots to use real-time listener
   useEffect(() => {
@@ -140,7 +136,7 @@ const AuctionLotAdd = () => {
       });
 
       alert("Data submitted successfully! Waiting for admin approval.");
-      setDisplayMode('default');
+      setDisplayMode('sellerForm'); // Changed to keep showing the form after submission
       
       // Reset form data
       setFormData({
@@ -263,16 +259,9 @@ const AuctionLotAdd = () => {
                 <div className="flex space-x-2">
                   <button
                     type="submit"
-                    className="w-1/2 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
                   >
                     Add
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDisplayMode('default')}
-                    className="w-1/2 bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
-                  >
-                    Cancel
                   </button>
                 </div>
               </form>
@@ -318,7 +307,7 @@ const AuctionLotAdd = () => {
             )}
             <div className="mt-4 text-center">
               <button 
-                onClick={() => setDisplayMode('default')}
+                onClick={() => setDisplayMode('sellerForm')}
                 className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
               >
                 Back
@@ -361,111 +350,111 @@ const AuctionLotAdd = () => {
             )}
             <div className="mt-4 text-center">
               <button
-              onClick={() => setDisplayMode('default')}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            >
-              Back
-            </button>
-          </div>
-        </div>
-      );
-      
-    case 'soldLots':
-      return (
-        <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
-          <h2 className="text-xl font-bold mb-4 text-center">My Sold Lots</h2>
-          {soldLots.length === 0 ? (
-            <p className="text-center text-gray-500">You don't have any sold lots yet.</p>
-          ) : (
-            <div className="overflow-auto max-h-96">
-              <table className="min-w-full bg-white">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="py-2 px-3 text-left">Lot No.</th>
-                    <th className="py-2 px-3 text-left">Seller</th>
-                    <th className="py-2 px-3 text-left">Grade</th>
-                    <th className="py-2 px-3 text-left">Quantity</th>
-                    <th className="py-2 px-3 text-left">Sold Date</th>
-                    <th className="py-2 px-3 text-left">Sold Price</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {soldLots.map((lot) => (
-                    <tr key={lot.id}>
-                      <td className="py-2 px-3">{lot.lotNumber}</td>
-                      <td className="py-2 px-3">{lot.sellerName}</td>
-                      <td className="py-2 px-3">{lot.grade}</td>
-                      <td className="py-2 px-3">{lot.totalQuantity} kg</td>
-                      <td className="py-2 px-3">{formatDate(lot.soldDate)}</td>
-                      <td className="py-2 px-3">{lot.soldPrice ? `$${lot.soldPrice}` : 'N/A'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                onClick={() => setDisplayMode('sellerForm')}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Back
+              </button>
             </div>
-          )}
-          <div className="mt-4 text-center">
-            <button 
-              onClick={() => setDisplayMode('default')}
-              className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-            >
-              Back
-            </button>
           </div>
-        </div>
-      );
+        );
       
-    default:
-      return (
-        <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6 min-h-32">
-          {/* Empty content area when no specific mode is active */}
+      case 'soldLots':
+        return (
+          <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
+            <h2 className="text-xl font-bold mb-4 text-center">My Sold Lots</h2>
+            {soldLots.length === 0 ? (
+              <p className="text-center text-gray-500">You don't have any sold lots yet.</p>
+            ) : (
+              <div className="overflow-auto max-h-96">
+                <table className="min-w-full bg-white">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="py-2 px-3 text-left">Lot No.</th>
+                      <th className="py-2 px-3 text-left">Seller</th>
+                      <th className="py-2 px-3 text-left">Grade</th>
+                      <th className="py-2 px-3 text-left">Quantity</th>
+                      <th className="py-2 px-3 text-left">Sold Date</th>
+                      <th className="py-2 px-3 text-left">Sold Price</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {soldLots.map((lot) => (
+                      <tr key={lot.id}>
+                        <td className="py-2 px-3">{lot.lotNumber}</td>
+                        <td className="py-2 px-3">{lot.sellerName}</td>
+                        <td className="py-2 px-3">{lot.grade}</td>
+                        <td className="py-2 px-3">{lot.totalQuantity} kg</td>
+                        <td className="py-2 px-3">{formatDate(lot.soldDate)}</td>
+                        <td className="py-2 px-3">{lot.soldPrice ? `$${lot.soldPrice}` : 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => setDisplayMode('sellerForm')}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6 min-h-32">
+            {/* Empty content area when no specific mode is active */}
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="w-full min-h-screen bg-white border border-gray-200">
+      {/* Navigation Bar */}
+      <nav className="navigationbard">
+        <ProfilePopup onLogout={handleLogout} />
+      </nav>
+
+      {/* Main Content */}
+      <div className="p-6">
+        {/* Buttons Row */}
+        <div className="flex justify-center space-x-4 mb-8">
+          <button 
+            className={`px-6 py-2 rounded ${displayMode === 'sellerForm' ? 'bg-green-700' : 'bg-green-900'} text-white`}
+            onClick={() => setDisplayMode('sellerForm')}
+          >
+            Add Lots
+          </button>
+          <button 
+            className={`px-6 py-2 rounded ${displayMode === 'status' ? 'bg-green-700' : 'bg-green-900'} text-white`}
+            onClick={() => setDisplayMode('status')}
+          >
+            Status
+          </button>
+          <button 
+            className={`px-6 py-2 rounded ${displayMode === 'myLots' ? 'bg-green-700' : 'bg-green-900'} text-white`}
+            onClick={() => setDisplayMode('myLots')}
+          >
+            My Lots
+          </button>
+          <button 
+            className={`px-6 py-2 rounded ${displayMode === 'soldLots' ? 'bg-green-700' : 'bg-green-900'} text-white`}
+            onClick={() => setDisplayMode('soldLots')}
+          >
+            Sold Lots
+          </button>
         </div>
-      );
-  }
-};
 
-return (
-  <div className="w-full min-h-screen bg-white border border-gray-200">
-    {/* Navigation Bar */}
-    <nav className="navigationbard">
-      <ProfilePopup onLogout={handleLogout} />
-    </nav>
-
-    {/* Main Content */}
-    <div className="p-6">
-      {/* Buttons Row */}
-      <div className="flex justify-center space-x-4 mb-8">
-        <button 
-          className="bg-green-900 text-white px-6 py-2 rounded"
-          onClick={() => setDisplayMode('sellerForm')}
-        >
-          Add Lots
-        </button>
-        <button 
-          className="bg-green-900 text-white px-6 py-2 rounded"
-          onClick={() => setDisplayMode('status')}
-        >
-          Status
-        </button>
-        <button 
-          className="bg-green-900 text-white px-6 py-2 rounded"
-          onClick={() => setDisplayMode('myLots')}
-        >
-          My Lots
-        </button>
-        <button 
-          className="bg-green-900 text-white px-6 py-2 rounded"
-          onClick={() => setDisplayMode('soldLots')}
-        >
-          Sold Lots
-        </button>
+        {/* Dynamic Content Area */}
+        {renderContent()}
       </div>
-
-      {/* Dynamic Content Area */}
-      {renderContent()}
     </div>
-  </div>
-);
+  );
 };
 
 export default AuctionLotAdd;

@@ -156,7 +156,17 @@ const BiddingPage = () => {
   };
 
   const handleLotSelect = (lot) => {
-    if (highestBids[lot.id]?.userId === auth.currentUser.uid || (lot.biddingStarted && !lot.sold)) {
+    if (lot.paymentCompleted && highestBids[lot.id]?.userId === auth.currentUser?.uid) {
+      // Make sure lot.id exists before navigating
+      if (lot.id) {
+        // Use absolute path to avoid relative path issues
+        navigate(`/receipt/${lot.id}`, { replace: false });
+        return; // Exit the function after navigation
+      }
+    }
+    
+    // Original behavior for unpaid lots
+    if (highestBids[lot.id]?.userId === auth.currentUser?.uid || (lot.biddingStarted && !lot.sold)) {
       setSelectedLot(lot);
     }
   };
@@ -269,7 +279,7 @@ const BiddingPage = () => {
     try {
       const db = getFirestore();
       const tokenNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit token
-
+  
       // Save payment details to Firestore
       const paymentRef = await addDoc(collection(db, "payments"), {
         lotId: lot.id,
@@ -287,7 +297,7 @@ const BiddingPage = () => {
           grade: lot.lotDetails?.grade || lot.grade || "Not specified"
         }
       });
-
+  
       // Update the auction lot to mark payment as completed
       const lotDocRef = doc(db, "auctionlotpub", lot.id);
       await updateDoc(lotDocRef, {
@@ -296,8 +306,8 @@ const BiddingPage = () => {
         paymentId: paymentRef.id,
         tokenNumber: tokenNumber
       });
-
-      // Update local state to reflect payment completion immediately
+  
+      // Update local state
       setLots(prevLots =>
         prevLots.map(l =>
           l.id === lot.id ? { ...l, paymentCompleted: true } : l
@@ -306,29 +316,15 @@ const BiddingPage = () => {
       if (selectedLot?.id === lot.id) {
         setSelectedLot({ ...selectedLot, paymentCompleted: true });
       }
-
-      // Close payment popup
+  
       setShowPaymentPopup(false);
-
-      // Show receipt
-      setReceiptData({
-        tokenNumber: tokenNumber,
-        paymentId: response.razorpay_payment_id,
-        timestamp: new Date(),
-        auctionNo: lot.number || lot.auctionNo,
-        center: lot.auctionCenter,
-        quantity: lot.totalQuantity,
-        seller: lot.lotDetails?.sellerName || lot.auctioneer,
-        grade: lot.lotDetails?.grade || lot.grade || "Not specified",
-        amount: lot.bidAmount
-      });
-      setShowReceipt(true);
+      navigate(`/receipt/${lot.id}`); // Single navigation call after successful payment
     } catch (error) {
       console.error("Error processing payment:", error);
       alert("Payment was successful, but failed to update in our system. Please note your payment ID: " + response.razorpay_payment_id + " and contact support.");
     }
   };
-
+  
   return (
     <div className="w-full min-h-screen bg-white">
       <nav className="navigationbard">
@@ -591,7 +587,7 @@ const BiddingPage = () => {
       )}
 
       {/* Receipt Modal */}
-      {showReceipt && receiptData && (
+      {/* {showReceipt && receiptData && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="text-center mb-4 border-b-2 border-gray-200 pb-4">
@@ -654,7 +650,7 @@ const BiddingPage = () => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

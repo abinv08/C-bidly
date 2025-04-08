@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getFirestore, collection, query, orderBy, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import AdminAuctionPage from './AdminAuctionPage';
 import AprovalPanel from './AprovalPanel';
 import LotApproval from './LotApproval';
@@ -18,6 +19,33 @@ const DashboardPage = () => {
   const [tempBidValues, setTempBidValues] = useState({ bidValue1: '', bidValue2: '' });
   const [bidEnabled, setBidEnabled] = useState(false);
   const [buyEnabled, setBuyEnabled] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Import Firebase auth
+    import('firebase/auth').then(({ getAuth, signOut }) => {
+      const auth = getAuth();
+
+      // Sign out the user
+      signOut(auth).then(() => {
+        // Clear browser history and redirect
+        // This will replace the current history entry instead of adding a new one
+        window.history.replaceState(null, '', '/');
+
+        // Force redirect to login page
+        window.location.href = '/';
+
+        // Alternative approach - prevent going back
+        window.history.pushState(null, '', '/');
+        window.addEventListener('popstate', function (event) {
+          window.history.pushState(null, '', '/');
+        });
+
+      }).catch((error) => {
+        console.error("Error signing out: ", error);
+      });
+    });
+  };
 
   useEffect(() => {
     if (!showAuctions) return;
@@ -62,7 +90,8 @@ const DashboardPage = () => {
           biddingStarted: auction.biddingStarted || false,
           bidValue1: auction.bidValue1 || '',
           bidValue2: auction.bidValue2 || '',
-          soldAt: auction.soldAt
+          soldAt: auction.soldAt,
+          paymentCompleted: auction.paymentCompleted || false // Add this line
         }));
 
         setAuctions(auctionData);
@@ -105,7 +134,12 @@ const DashboardPage = () => {
   );
 
   const handleLotSelect = (lot) => {
-    if (!lot.sold) {
+    if (lot.sold) {
+      // Check if payment is completed (assuming this info is available in the lot data)
+      if (lot.paymentCompleted) {
+        navigate(`/receipt/${lot.id}`);
+      }
+    } else {
       setSelectedLot(lot);
       setCountdown(null);
     }
@@ -181,20 +215,20 @@ const DashboardPage = () => {
     }
   };
 
-const toggleBidStatus = (status) => {
-  setBidEnabled(status);
-  try {
-    const db = getFirestore();
-    const configRef = doc(db, "appConfig", "auctionSettings");
-    updateDoc(configRef, {
-      biddingEnabled: status
-    });
-    console.log(`Bidding ${status ? 'enabled' : 'disabled'} successfully`);
-  } catch (error) {
-    console.error("Error updating bid status:", error);
-  }
-};
-  
+  const toggleBidStatus = (status) => {
+    setBidEnabled(status);
+    try {
+      const db = getFirestore();
+      const configRef = doc(db, "appConfig", "auctionSettings");
+      updateDoc(configRef, {
+        biddingEnabled: status
+      });
+      console.log(`Bidding ${status ? 'enabled' : 'disabled'} successfully`);
+    } catch (error) {
+      console.error("Error updating bid status:", error);
+    }
+  };
+
   const toggleBuyStatus = (status) => {
     setBuyEnabled(status);
     // Update your database
@@ -238,58 +272,58 @@ const toggleBidStatus = (status) => {
           Start Auction
         </button> */}
 
-       
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <button
-            onClick={() => setShowAuctions(!showAuctions)}
-            className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <button
+          onClick={() => setShowAuctions(!showAuctions)}
+          className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
              bg-gradient-to-r from-green-500 to-green-600 
              transform transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-          >
-            <span className="text-3xl mb-2">🚀</span>
-            {showAuctions ? 'Close Auction Panel' : 'Start Auction'}
-          </button>
+        >
+          <span className="text-3xl mb-2"></span>
+          {showAuctions ? 'Close Auction Panel' : 'Start Auction'}
+        </button>
 
-          <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
+        <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
              bg-gradient-to-r from-blue-500 to-blue-600">
-            <span className="text-3xl mb-2">📦</span>
-            <span>Bid Status: {bidEnabled ? 'Enabled' : 'Disabled'}</span>
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => toggleBidStatus(true)}
-                className={`px-3 py-1 rounded ${bidEnabled ? 'bg-blue-700' : 'bg-green-500 hover:bg-green-600'}`}
-              >
-                Open
-              </button>
-              <button
-                onClick={() => toggleBidStatus(false)}
-                className={`px-3 py-1 rounded ${!bidEnabled ? 'bg-blue-700' : 'bg-red-500 hover:bg-red-600'}`}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
-             bg-gradient-to-r from-purple-500 to-purple-600">
-            <span className="text-3xl mb-2">💰</span>
-            <span>Buy Status: {buyEnabled ? 'Enabled' : 'Disabled'}</span>
-            <div className="flex gap-2 mt-3">
-              <button
-                onClick={() => toggleBuyStatus(true)}
-                className={`px-3 py-1 rounded ${buyEnabled ? 'bg-purple-700' : 'bg-green-500 hover:bg-green-600'}`}
-              >
-                Open
-              </button>
-              <button
-                onClick={() => toggleBuyStatus(false)}
-                className={`px-3 py-1 rounded ${!buyEnabled ? 'bg-purple-700' : 'bg-red-500 hover:bg-red-600'}`}
-              >
-                Close
-              </button>
-            </div>
+          <span className="text-3xl mb-2">📦</span>
+          <span>Bid Status: {bidEnabled ? 'Enabled' : 'Disabled'}</span>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => toggleBidStatus(true)}
+              className={`px-3 py-1 rounded ${bidEnabled ? 'bg-blue-700' : 'bg-green-500 hover:bg-green-600'}`}
+            >
+              Open
+            </button>
+            <button
+              onClick={() => toggleBidStatus(false)}
+              className={`px-3 py-1 rounded ${!bidEnabled ? 'bg-blue-700' : 'bg-red-500 hover:bg-red-600'}`}
+            >
+              Close
+            </button>
           </div>
         </div>
+
+        <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
+             bg-gradient-to-r from-purple-500 to-purple-600">
+          <span className="text-3xl mb-2">💰</span>
+          <span>Buy Status: {buyEnabled ? 'Enabled' : 'Disabled'}</span>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={() => toggleBuyStatus(true)}
+              className={`px-3 py-1 rounded ${buyEnabled ? 'bg-purple-700' : 'bg-green-500 hover:bg-green-600'}`}
+            >
+              Open
+            </button>
+            <button
+              onClick={() => toggleBuyStatus(false)}
+              className={`px-3 py-1 rounded ${!buyEnabled ? 'bg-purple-700' : 'bg-red-500 hover:bg-red-600'}`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
       {/* </div> */}
 
       {showAuctions && (
@@ -321,9 +355,9 @@ const toggleBidStatus = (status) => {
                   <div
                     key={lot.id}
                     className={`p-3 flex items-center justify-center text-white font-bold rounded-lg 
-                      ${showSoldLots ? 'bg-gray-700' : 'bg-green-900 cursor-pointer'}
-                      ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
-                    onClick={() => !showSoldLots && handleLotSelect(lot)}
+        ${showSoldLots ? 'bg-gray-700 cursor-pointer' : 'bg-green-900 cursor-pointer'}
+        ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => handleLotSelect(lot)} // Updated to handle both sold and unsold lots
                   >
                     <div className="text-center">
                       <div className="text-xl">{lot.number}</div>
@@ -332,6 +366,12 @@ const toggleBidStatus = (status) => {
                         <div className="text-xs mt-1">
                           {new Date(lot.soldAt.seconds * 1000).toLocaleDateString()}
                         </div>
+                      )}
+                      {showSoldLots && lot.paymentCompleted && (
+                        <div className="text-xs mt-1 text-green-300">Paid</div>
+                      )}
+                      {showSoldLots && !lot.paymentCompleted && (
+                        <div className="text-xs mt-1 text-red-300">Unpaid</div>
                       )}
                     </div>
                   </div>
@@ -474,12 +514,12 @@ const toggleBidStatus = (status) => {
       <div className="w-full md:w-64 bg-green-700 p-4">
         <div className="text-white text-xl font-bold mb-8">Auctioneer Panel</div>
         <nav className="flex flex-col gap-2 -ml-0">
-          {['Dashboard', 'Aprovals', 'Auction', 'Lot Approval', 'Review'].map((item) => (
+          {['Dashboard', 'Aprovals', 'Auction', 'Lot Approval'].map((item) => (
             <button
               key={item}
               className={`w-full text-left px-4 py-2 rounded-md transition-colors duration-200
-                        text-white border-none cursor-pointer
-                        ${currentPage === item.toLowerCase()
+                text-white border-none cursor-pointer
+                ${currentPage === item.toLowerCase()
                   ? 'bg-green-600'
                   : 'bg-green-600 hover:bg-green-500'
                 }`}
@@ -488,6 +528,13 @@ const toggleBidStatus = (status) => {
               {item}
             </button>
           ))}
+          <button
+            className="w-full text-left px-4 py-2 rounded-md transition-colors duration-200
+              text-white border-none cursor-pointer bg-red-600 hover:bg-red-700 mt-2"
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </nav>
       </div>
 

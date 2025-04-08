@@ -162,7 +162,7 @@ const CardamomAuctionForm = () => {
               <option value="seller">SELLER/FARMER</option>
             </select>
 
-            {formData.role === 'buyer' && (
+            {/* {formData.role === 'buyer' && (
               <div>
                 <label htmlFor="image" className="text-white block mb-2">
                   Bank Proof (5 Cr Security Deposit)
@@ -180,7 +180,7 @@ const CardamomAuctionForm = () => {
                   <p className="text-white mt-2">Selected file: {formData.image.name}</p>
                 )}
               </div>
-            )}
+            )} */}
             
             <button 
               type="submit" 

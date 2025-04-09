@@ -20,7 +20,8 @@ const AuctionLotAdd = () => {
   const [approvedLots, setApprovedLots] = useState([]);
   const [soldLots, setSoldLots] = useState([]);
   const navigate = useNavigate(); // Initialize useNavigate
-  
+  const [dateFilter, setDateFilter] = useState('all');
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -30,6 +31,27 @@ const AuctionLotAdd = () => {
     }
   };
 
+  const filterLotsByDate = (lots, dateRange) => {
+    if (dateRange === 'all') return lots;
+    
+    return lots.filter(lot => {
+      const lotDate = new Date(lot.createdAt);
+      const now = new Date();
+      
+      if (dateRange === 'today') {
+        return lotDate.toDateString() === now.toDateString();
+      } else if (dateRange === 'week') {
+        const weekAgo = new Date();
+        weekAgo.setDate(now.getDate() - 7);
+        return lotDate >= weekAgo;
+      } else if (dateRange === 'month') {
+        const monthAgo = new Date();
+        monthAgo.setMonth(now.getMonth() - 1);
+        return lotDate >= monthAgo;
+      }
+      return true;
+    });
+  };
   // Modified fetchUserLots to use real-time listener
   useEffect(() => {
     if (displayMode === 'status' || displayMode === 'myLots' || displayMode === 'soldLots') {
@@ -269,140 +291,182 @@ const AuctionLotAdd = () => {
           </div>
         );
         
-      case 'status':
-        return (
-          <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
-            <h2 className="text-xl font-bold mb-4 text-center">Lot Approval Status</h2>
-            {statusLots.length === 0 ? (
-              <p className="text-center text-gray-500">You haven't uploaded any lots yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {statusLots.map((lot) => (
-                  <div key={lot.id} className="border rounded p-3 bg-gray-50">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-semibold">{lot.sellerName}</h3>
-                      {renderStatusBadge(lot)}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Grade: <span className="font-medium">{lot.grade}</span></div>
-                      <div>Bag Size: <span className="font-medium">{lot.bagSize} kg</span></div>
-                      <div>Bags: <span className="font-medium">{lot.numberOfBags}</span></div>
-                      <div>Total: <span className="font-medium">{lot.totalQuantity} kg</span></div>
-                      <div>Lot Number: <span className="font-medium">{lot.lotNumber || 'Pending'}</span></div>
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${lot.firstApproval ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span>First Approval {lot.firstApproval ? `(${formatDate(lot.approvedAt)})` : ''}</span>
+        case 'status':
+          return (
+            <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
+              <h2 className="text-xl font-bold mb-4 text-center">Lot Approval Status</h2>
+              
+              {/* Date Filter */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                <select 
+                  className="w-full p-2 border rounded"
+                  value={dateFilter}
+                  onChange={(e) => setDateFilter(e.target.value)}
+                >
+                 
+                  <option value="today">Today</option>
+                  <option value="week">Last 7 Days</option>
+                  <option value="month">Last 30 Days</option>
+                  <option value="all">All Time</option>
+                </select>
+              </div>
+              
+              {statusLots.length === 0 ? (
+                <p className="text-center text-gray-500">You haven't uploaded any lots yet.</p>
+              ) : (
+                <div className="space-y-4">
+                  {filterLotsByDate(statusLots, dateFilter).length === 0 ? (
+                    <p className="text-center text-gray-500">No lots found in the selected date range.</p>
+                  ) : (
+                    filterLotsByDate(statusLots, dateFilter).map((lot) => (
+                      <div key={lot.id} className="border rounded p-3 bg-gray-50">
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-semibold">{lot.sellerName}</h3>
+                          {renderStatusBadge(lot)}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${lot.secondApproval ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span>Second Approval {lot.secondApproval ? `(${formatDate(lot.finalApprovedAt)})` : ''}</span>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <div>Grade: <span className="font-medium">{lot.grade}</span></div>
+                          <div>Bag Size: <span className="font-medium">{lot.bagSize} kg</span></div>
+                          <div>Bags: <span className="font-medium">{lot.numberOfBags}</span></div>
+                          <div>Total: <span className="font-medium">{lot.totalQuantity} kg</span></div>
+                          <div>Lot Number: <span className="font-medium">{lot.lotNumber || 'Pending'}</span></div>
+                          <div className="flex flex-col space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full ${lot.firstApproval ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              <span>First Approval {lot.firstApproval ? `(${formatDate(lot.approvedAt)})` : ''}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full ${lot.secondApproval ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                              <span>Second Approval {lot.secondApproval ? `(${formatDate(lot.finalApprovedAt)})` : ''}</span>
+                            </div>
+                          </div>
+                          <div className="col-span-2">Created: <span className="font-medium">{formatDate(lot.createdAt)}</span></div>
                         </div>
                       </div>
-                      <div className="col-span-2">Created: <span className="font-medium">{formatDate(lot.createdAt)}</span></div>
-                    </div>
-                  </div>
-                ))}
+                    ))
+                  )}
+                </div>
+              )}
+              <div className="mt-4 text-center">
+                <button 
+                  onClick={() => setDisplayMode('sellerForm')}
+                  className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                >
+                  Back
+                </button>
               </div>
-            )}
-            <div className="mt-4 text-center">
-              <button 
-                onClick={() => setDisplayMode('sellerForm')}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Back
-              </button>
             </div>
-          </div>
-        );
+          );
         
-      case 'myLots':
-        return (
-          <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
-            <h2 className="text-xl font-bold mb-4 text-center">My Approved Lots</h2>
-            {approvedLots.length === 0 ? (
-              <p className="text-center text-gray-500">You don't have any approved lots yet.</p>
-            ) : (
-              <div className="overflow-auto max-h-96">
-                <table className="min-w-full bg-white">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="py-2 px-3 text-left">Lot No.</th>
-                      <th className="py-2 px-3 text-left">Seller</th>
-                      <th className="py-2 px-3 text-left">Grade</th>
-                      <th className="py-2 px-3 text-left">Quantity</th>
-                      <th className="py-2 px-3 text-left">Approval Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {approvedLots.map((lot) => (
-                      <tr key={lot.id}>
-                        <td className="py-2 px-3">{lot.lotNumber}</td>
-                        <td className="py-2 px-3">{lot.sellerName}</td>
-                        <td className="py-2 px-3">{lot.grade}</td>
-                        <td className="py-2 px-3">{lot.totalQuantity} kg</td>
-                        <td className="py-2 px-3">{formatDate(lot.finalApprovedAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setDisplayMode('sellerForm')}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Back
-              </button>
-            </div>
-          </div>
-        );
+case 'myLots':
+  return (
+    <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
+      <h2 className="text-xl font-bold mb-4 text-center">My Approved Lots</h2>
       
-      case 'soldLots':
-        return (
-          <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
-            <h2 className="text-xl font-bold mb-4 text-center">My Sold Lots</h2>
-            {soldLots.length === 0 ? (
-              <p className="text-center text-gray-500">You don't have any sold lots yet.</p>
-            ) : (
-              <div className="overflow-auto max-h-96">
-                <table className="min-w-full bg-white">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="py-2 px-3 text-left">Lot No.</th>
-                      <th className="py-2 px-3 text-left">Seller</th>
-                      <th className="py-2 px-3 text-left">Grade</th>
-                      <th className="py-2 px-3 text-left">Quantity</th>
-                      <th className="py-2 px-3 text-left">Sold Date</th>
-                      <th className="py-2 px-3 text-left">Sold Price</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {soldLots.map((lot) => (
-                      <tr key={lot.id}>
-                        <td className="py-2 px-3">{lot.lotNumber}</td>
-                        <td className="py-2 px-3">{lot.sellerName}</td>
-                        <td className="py-2 px-3">{lot.grade}</td>
-                        <td className="py-2 px-3">{lot.totalQuantity} kg</td>
-                        <td className="py-2 px-3">{formatDate(lot.soldDate)}</td>
-                        <td className="py-2 px-3">{lot.soldPrice ? `$${lot.soldPrice}` : 'N/A'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            <div className="mt-4 text-center">
-              <button 
-                onClick={() => setDisplayMode('sellerForm')}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
-              >
-                Back
-              </button>
-            </div>
-          </div>
-        );
+      {/* Date Filter */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+        <select 
+          className="w-full p-2 border rounded"
+          value={dateFilter}
+          onChange={(e) => setDateFilter(e.target.value)}
+        >
+          
+          <option value="today">Today</option>
+          <option value="week">Last 7 Days</option>
+          <option value="month">Last 30 Days</option>
+          <option value="all">All Time</option>
+        </select>
+      </div>
+      
+      {approvedLots.length === 0 ? (
+        <p className="text-center text-gray-500">You don't have any approved lots yet.</p>
+      ) : (
+        <div className="overflow-auto max-h-96">
+          {filterLotsByDate(approvedLots, dateFilter).length === 0 ? (
+            <p className="text-center text-gray-500">No approved lots found in the selected date range.</p>
+          ) : (
+            <table className="min-w-full bg-white">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="py-2 px-3 text-left">Lot No.</th>
+                  <th className="py-2 px-3 text-left">Seller</th>
+                  <th className="py-2 px-3 text-left">Grade</th>
+                  <th className="py-2 px-3 text-left">Quantity</th>
+                  <th className="py-2 px-3 text-left">Approval Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filterLotsByDate(approvedLots, dateFilter).map((lot) => (
+                  <tr key={lot.id}>
+                    <td className="py-2 px-3">{lot.lotNumber}</td>
+                    <td className="py-2 px-3">{lot.sellerName}</td>
+                    <td className="py-2 px-3">{lot.grade}</td>
+                    <td className="py-2 px-3">{lot.totalQuantity} kg</td>
+                    <td className="py-2 px-3">{formatDate(lot.finalApprovedAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+      <div className="mt-4 text-center">
+        <button
+          onClick={() => setDisplayMode('sellerForm')}
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+        >
+          Back
+        </button>
+      </div>
+    </div>
+  );
+      
+      // case 'soldLots':
+      //   return (
+      //     <div className="max-w-2xl mx-auto border border-gray-300 rounded p-6">
+      //       <h2 className="text-xl font-bold mb-4 text-center">My Sold Lots</h2>
+      //       {soldLots.length === 0 ? (
+      //         <p className="text-center text-gray-500">You don't have any sold lots yet.</p>
+      //       ) : (
+      //         <div className="overflow-auto max-h-96">
+      //           <table className="min-w-full bg-white">
+      //             <thead className="bg-gray-100">
+      //               <tr>
+      //                 <th className="py-2 px-3 text-left">Lot No.</th>
+      //                 <th className="py-2 px-3 text-left">Seller</th>
+      //                 <th className="py-2 px-3 text-left">Grade</th>
+      //                 <th className="py-2 px-3 text-left">Quantity</th>
+      //                 <th className="py-2 px-3 text-left">Sold Date</th>
+      //                 <th className="py-2 px-3 text-left">Sold Price</th>
+      //               </tr>
+      //             </thead>
+      //             <tbody className="divide-y">
+      //               {soldLots.map((lot) => (
+      //                 <tr key={lot.id}>
+      //                   <td className="py-2 px-3">{lot.lotNumber}</td>
+      //                   <td className="py-2 px-3">{lot.sellerName}</td>
+      //                   <td className="py-2 px-3">{lot.grade}</td>
+      //                   <td className="py-2 px-3">{lot.totalQuantity} kg</td>
+      //                   <td className="py-2 px-3">{formatDate(lot.soldDate)}</td>
+      //                   <td className="py-2 px-3">{lot.soldPrice ? `$${lot.soldPrice}` : 'N/A'}</td>
+      //                 </tr>
+      //               ))}
+      //             </tbody>
+      //           </table>
+      //         </div>
+      //       )}
+      //       <div className="mt-4 text-center">
+      //         <button 
+      //           onClick={() => setDisplayMode('sellerForm')}
+      //           className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+      //         >
+      //           Back
+      //         </button>
+      //       </div>
+      //     </div>
+      //   );
       
       default:
         return (
@@ -442,12 +506,12 @@ const AuctionLotAdd = () => {
           >
             My Lots
           </button>
-          <button 
+          {/* <button 
             className={`px-6 py-2 rounded ${displayMode === 'soldLots' ? 'bg-green-700' : 'bg-green-900'} text-white`}
             onClick={() => setDisplayMode('soldLots')}
           >
             Sold Lots
-          </button>
+          </button> */}
         </div>
 
         {/* Dynamic Content Area */}

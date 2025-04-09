@@ -50,7 +50,8 @@ const BiddingPage = () => {
             sold: data.sold || false,
             bidValue1: data.bidValue1 || '',
             bidValue2: data.bidValue2 || '',
-            paymentCompleted: data.paymentCompleted || false
+            paymentCompleted: data.paymentCompleted || false,
+            maxBidReached: data.maxBidReached || false  // Added this line
           });
         });
 
@@ -69,7 +70,8 @@ const BiddingPage = () => {
           biddingStarted: auction.biddingStarted || false,
           bidValue1: auction.bidValue1 || '',
           bidValue2: auction.bidValue2 || '',
-          paymentCompleted: auction.paymentCompleted || false
+          paymentCompleted: auction.paymentCompleted || false,
+          maxBidReached: auction.maxBidReached || false  // Added this line
         }));
 
         setAuctions(auctionData);
@@ -164,7 +166,7 @@ const BiddingPage = () => {
         return; // Exit the function after navigation
       }
     }
-    
+
     // Original behavior for unpaid lots
     if (highestBids[lot.id]?.userId === auth.currentUser?.uid || (lot.biddingStarted && !lot.sold)) {
       setSelectedLot(lot);
@@ -279,7 +281,7 @@ const BiddingPage = () => {
     try {
       const db = getFirestore();
       const tokenNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit token
-  
+
       // Save payment details to Firestore
       const paymentRef = await addDoc(collection(db, "payments"), {
         lotId: lot.id,
@@ -297,7 +299,7 @@ const BiddingPage = () => {
           grade: lot.lotDetails?.grade || lot.grade || "Not specified"
         }
       });
-  
+
       // Update the auction lot to mark payment as completed
       const lotDocRef = doc(db, "auctionlotpub", lot.id);
       await updateDoc(lotDocRef, {
@@ -306,7 +308,7 @@ const BiddingPage = () => {
         paymentId: paymentRef.id,
         tokenNumber: tokenNumber
       });
-  
+
       // Update local state
       setLots(prevLots =>
         prevLots.map(l =>
@@ -316,7 +318,7 @@ const BiddingPage = () => {
       if (selectedLot?.id === lot.id) {
         setSelectedLot({ ...selectedLot, paymentCompleted: true });
       }
-  
+
       setShowPaymentPopup(false);
       navigate(`/receipt/${lot.id}`); // Single navigation call after successful payment
     } catch (error) {
@@ -324,7 +326,7 @@ const BiddingPage = () => {
       alert("Payment was successful, but failed to update in our system. Please note your payment ID: " + response.razorpay_payment_id + " and contact support.");
     }
   };
-  
+
   return (
     <div className="w-full min-h-screen bg-white">
       <nav className="navigationbard">
@@ -336,27 +338,15 @@ const BiddingPage = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full text-center">
             <div className="mb-4">
-              <div className="text-5xl mb-2">🎉</div>
-              <h2 className="text-2xl font-bold text-green-700">Congratulations!</h2>
-              <p className="text-xl mt-2">You won the auction for lot #{wonLotInfo.number}!</p>
-              <p className="mt-4">Your bid of ₹{highestBids[wonLotInfo.id]?.amount.toLocaleString()} was the highest.</p>
-              <p className="mt-2">Please proceed to payment to complete your purchase.</p>
+              <h2 className="text-2xl font-bold text-red-700">Auction Ended</h2>
+              <p className="mt-4">Winning bid amount: ₹{highestBids[wonLotInfo.id]?.amount.toLocaleString()}</p>
             </div>
-            <div className="flex justify-center gap-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowWinNotification(false);
-                  handlePaymentProcess(wonLotInfo);
-                }}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                Pay Now
-              </button>
+            <div className="flex justify-center mt-6">
               <button
                 onClick={() => setShowWinNotification(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
               >
-                Later
+                Close
               </button>
             </div>
           </div>
@@ -467,6 +457,19 @@ const BiddingPage = () => {
                 ) : (
                   <p className="text-center text-gray-500 mt-4">Please select an active auction</p>
                 )}
+                {selectedLot && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => navigate(`/bid-history/${selectedLot.id}`)}
+                      className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      View Bid History
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -477,6 +480,14 @@ const BiddingPage = () => {
                   selectedLot.sold ? (
                     <div className="text-center p-4">
                       <p className="text-xl font-bold text-red-600">Auction has ended</p>
+                      <div className="mt-3">
+                        <button
+                          onClick={() => navigate(`/bid-history/${selectedLot.id}`)}
+                          className="text-blue-600 hover:text-blue-800 text-sm underline"
+                        >
+                          View final bid results
+                        </button>
+                      </div>
                       {highestBids[selectedLot.id]?.userId === auth.currentUser.uid ? (
                         <>
                           <p className="text-green-600 font-bold mt-2">Congratulations! You won this auction.</p>
@@ -492,10 +503,12 @@ const BiddingPage = () => {
                       ) : (
                         <p className="text-gray-600 mt-2">The auction has been completed.</p>
                       )}
+
                     </div>
                   ) : !selectedLot.biddingStarted ? (
                     <p className="text-center text-gray-500 mt-4">Bidding has not started yet</p>
                   ) : (
+
                     <PriceEntryForm
                       onBuyNow={(amount) => handleBidSubmit(selectedLot.id, amount)}
                       minimumPrice={parseInt(selectedLot.minimum || 0)}
@@ -505,9 +518,20 @@ const BiddingPage = () => {
                       selectedLot={selectedLot}
                     />
                   )
+
                 ) : (
                   <p className="text-center text-gray-500 mt-4">Select an active auction to bid</p>
+                )}{selectedLot && !selectedLot.sold && (
+                  <div className="mb-3 text-right">
+                    <button
+                      onClick={() => navigate(`/bid-history/${selectedLot.id}`)}
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      View all bids →
+                    </button>
+                  </div>
                 )}
+
               </div>
             </div>
           </div>
@@ -659,6 +683,10 @@ const PriceEntryForm = ({ onBuyNow, minimumPrice = 0, maximumPrice = 0, bidValue
   const [totalPrice, setTotalPrice] = useState(minimumPrice);
   const auth = getAuth();
   const [currentHighestBid, setCurrentHighestBid] = useState(minimumPrice);
+  const [bidButtonDisabled, setBidButtonDisabled] = useState(false);
+
+  // Get the actual maximum price from the selectedLot data
+  const actualMaxPrice = selectedLot?.maximum ? parseInt(selectedLot.maximum) : maximumPrice;
 
   useEffect(() => {
     if (!selectedLot?.id) return;
@@ -673,19 +701,36 @@ const PriceEntryForm = ({ onBuyNow, minimumPrice = 0, maximumPrice = 0, bidValue
           const highestBid = snapshot.docs[0].data().bidAmount;
           setCurrentHighestBid(highestBid);
           setTotalPrice(prev => Math.max(prev, highestBid));
+
+          // Check if current highest bid is at maximum price
+          // Use the actual maximum price from the lot data
+          if (highestBid >= actualMaxPrice) {
+            setBidButtonDisabled(true);
+          }
         }
       }
     );
 
     return () => unsubscribe();
-  }, [selectedLot]);
+  }, [selectedLot, actualMaxPrice]);
+
+  // Check if total price equals maximum price
+  useEffect(() => {
+    // Compare against the actual maximum price from the lot data
+    if (totalPrice >= actualMaxPrice) {
+      setBidButtonDisabled(true);
+    } else {
+      setBidButtonDisabled(false);
+    }
+  }, [totalPrice, actualMaxPrice]);
 
   const handleBidClick = (value) => {
-    if (value && !isNaN(parseInt(value))) {
+    if (value && !isNaN(parseInt(value)) && !bidButtonDisabled) {
       const increment = parseInt(value);
       setTotalPrice(prevTotal => {
         const newTotal = Math.max(currentHighestBid + increment, prevTotal + increment);
-        return newTotal <= maximumPrice ? newTotal : maximumPrice;
+        // Compare against the actual maximum price
+        return newTotal <= actualMaxPrice ? newTotal : actualMaxPrice;
       });
     }
   };
@@ -694,17 +739,33 @@ const PriceEntryForm = ({ onBuyNow, minimumPrice = 0, maximumPrice = 0, bidValue
     setTotalPrice(Math.max(minimumPrice, currentHighestBid));
   };
 
-  const handleBuyNowClick = () => {
-    if (totalPrice > currentHighestBid) {
-      onBuyNow(totalPrice);
+  const handleBuyNowClick = async () => {
+    if (totalPrice > currentHighestBid && !bidButtonDisabled) {
+      // Disable button immediately to prevent multiple clicks
+      setBidButtonDisabled(true);
+      await onBuyNow(totalPrice);
+
+      // If this is the maximum price bid, update the UI for all users
+      // Compare against the actual maximum price
+      if (totalPrice >= actualMaxPrice) {
+        try {
+          const db = getFirestore();
+          const lotDocRef = doc(db, "auctionlotpub", selectedLot.id);
+          await updateDoc(lotDocRef, {
+            maxBidReached: true
+          });
+        } catch (error) {
+          console.error("Error updating max bid status:", error);
+        }
+      }
     } else {
       alert("Your bid must be higher than the current highest bid");
     }
   };
 
-  const isMaxReached = totalPrice >= maximumPrice;
+  const isMaxReached = totalPrice >= actualMaxPrice;
 
-  const avgPrice = (minimumPrice + maximumPrice) / 2;
+  const avgPrice = (minimumPrice + actualMaxPrice) / 2;
 
   const winningChanceData = [
     { value: 0 },
@@ -783,9 +844,10 @@ const PriceEntryForm = ({ onBuyNow, minimumPrice = 0, maximumPrice = 0, bidValue
       <div className="flex gap-2">
         <button
           onClick={handleBuyNowClick}
-          className="flex-1 bg-green-800 text-white p-2 rounded-lg hover:bg-green-900 transition-colors"
+          disabled={bidButtonDisabled}
+          className={`flex-1 ${bidButtonDisabled ? 'bg-gray-400' : 'bg-green-800 hover:bg-green-900'} text-white p-2 rounded-lg transition-colors`}
         >
-          BID NOW
+          {bidButtonDisabled ? "MAXIMUM BID REACHED" : "BID NOW"}
         </button>
         <button
           onClick={handleReset}

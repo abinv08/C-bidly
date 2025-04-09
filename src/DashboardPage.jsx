@@ -20,6 +20,20 @@ const DashboardPage = () => {
   const [bidEnabled, setBidEnabled] = useState(false);
   const [buyEnabled, setBuyEnabled] = useState(false);
   const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    dateFrom: '',
+    dateTo: '',
+    auctionNumber: '',
+    paymentStatus: 'all' // 'all', 'paid', 'unpaid'
+  });
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleLogout = () => {
     // Import Firebase auth
@@ -98,11 +112,43 @@ const DashboardPage = () => {
         setLots(lotsFromAuctions);
 
         // Filter and display lots based on showSoldLots state
-        const filteredLots = lotsFromAuctions.filter(lot => lot.sold === showSoldLots);
+        let filteredLots = lotsFromAuctions.filter(lot => lot.sold === showSoldLots);
+
         if (showSoldLots) {
+          // Apply filters only to sold lots
+          if (filters.auctionNumber) {
+            filteredLots = filteredLots.filter(lot =>
+              lot.number && lot.number.toLowerCase().includes(filters.auctionNumber.toLowerCase())
+            );
+          }
+
+          if (filters.paymentStatus !== 'all') {
+            const isPaid = filters.paymentStatus === 'paid';
+            filteredLots = filteredLots.filter(lot => lot.paymentCompleted === isPaid);
+          }
+
+          if (filters.dateFrom) {
+            const fromDate = new Date(filters.dateFrom).getTime();
+            filteredLots = filteredLots.filter(lot =>
+              lot.soldAt && (lot.soldAt.seconds * 1000) >= fromDate
+            );
+          }
+
+          if (filters.dateTo) {
+            // Set time to end of day for the to-date
+            const toDate = new Date(filters.dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            const toTimestamp = toDate.getTime();
+
+            filteredLots = filteredLots.filter(lot =>
+              lot.soldAt && (lot.soldAt.seconds * 1000) <= toTimestamp
+            );
+          }
+
           // Sort sold lots by soldAt date in descending order
           filteredLots.sort((a, b) => (b.soldAt?.seconds || 0) - (a.soldAt?.seconds || 0));
         }
+
         setDisplayedLots(filteredLots.slice(0, 8));
         setLoading(false);
       } catch (err) {
@@ -112,7 +158,8 @@ const DashboardPage = () => {
     });
 
     return () => unsubscribe();
-  }, [showAuctions, showSoldLots]);
+  }, [showAuctions, showSoldLots, filters]); // Add filters to the dependency array
+
 
   useEffect(() => {
     let timer;
@@ -134,15 +181,22 @@ const DashboardPage = () => {
   );
 
   const handleLotSelect = (lot) => {
-    if (lot.sold) {
-      // Check if payment is completed (assuming this info is available in the lot data)
-      if (lot.paymentCompleted) {
-        navigate(`/receipt/${lot.id}`);
-      }
-    } else {
+    if (!lot.sold) {
       setSelectedLot(lot);
       setCountdown(null);
+    } else {
+      setSelectedLot(lot); // Just select the lot but don't navigate
     }
+  };
+
+  const navigateToBidHistory = (lotId, event) => {
+    event.stopPropagation(); // Prevent triggering the parent div's onClick
+    navigate(`/bid-history/${lotId}`);
+  };
+
+  const navigateToReceipt = (lotId, event) => {
+    event.stopPropagation(); // Prevent triggering the parent div's onClick
+    navigate(`/receipt/${lotId}`);
   };
 
   const handleBid = async (lotId, bidValue1, bidValue2) => {
@@ -244,6 +298,82 @@ const DashboardPage = () => {
     }
   };
 
+  const FilterPanel = () => {
+    if (!showSoldLots) return null;
+
+    // Handle date range selection
+    const handleDateRangeChange = (e) => {
+      const { value } = e.target;
+      const today = new Date();
+      let fromDate = '';
+      let toDate = '';
+
+      if (value === 'today') {
+        fromDate = today.toISOString().split('T')[0];
+        toDate = today.toISOString().split('T')[0];
+      } else if (value === 'yesterday') {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        fromDate = yesterday.toISOString().split('T')[0];
+        toDate = yesterday.toISOString().split('T')[0];
+      } else if (value === 'week') {
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        fromDate = weekAgo.toISOString().split('T')[0];
+        toDate = today.toISOString().split('T')[0];
+      } else if (value === 'month') {
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        fromDate = monthAgo.toISOString().split('T')[0];
+        toDate = today.toISOString().split('T')[0];
+      }
+
+      setFilters(prev => ({
+        ...prev,
+        dateFrom: fromDate,
+        dateTo: toDate,
+        dateRange: value
+      }));
+    };
+
+    return (
+      <div className="mb-4 p-3 bg-white rounded-lg shadow">
+        <h3 className="text-sm font-medium mb-2">Filter Sold Lots</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-xs font-medium mb-1">Date Range</label>
+            <select
+              name="dateRange"
+              value={filters.dateRange || 'all'}
+              onChange={handleDateRangeChange}
+              className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+            >
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="yesterday">Yesterday</option>
+              <option value="week">Last 7 Days</option>
+              <option value="month">Last 30 Days</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium mb-1">Payment Status</label>
+            <select
+              name="paymentStatus"
+              value={filters.paymentStatus}
+              onChange={handleFilterChange}
+              className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+            >
+              <option value="all">All</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const DashboardContent = () => (
     <div className="p-6 w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -287,7 +417,7 @@ const DashboardPage = () => {
         <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
              bg-gradient-to-r from-blue-500 to-blue-600">
           <span className="text-3xl mb-2">📦</span>
-          <span>Bid Status: {bidEnabled ? 'Enabled' : 'Disabled'}</span>
+          <span>Bid Status: {bidEnabled ? 'Disabled' : 'Enabled'}</span>
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => toggleBidStatus(true)}
@@ -307,7 +437,7 @@ const DashboardPage = () => {
         <div className="flex flex-col items-center justify-center p-6 rounded-xl text-white font-semibold 
              bg-gradient-to-r from-purple-500 to-purple-600">
           <span className="text-3xl mb-2">💰</span>
-          <span>Buy Status: {buyEnabled ? 'Enabled' : 'Disabled'}</span>
+          <span>Buy Status: {buyEnabled ? 'Disabled' : 'Enabled'}</span>
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => toggleBuyStatus(true)}
@@ -342,6 +472,7 @@ const DashboardPage = () => {
               {showSoldLots ? 'Show Available Lots' : 'Show Sold Lots'}
             </button>
           </div>
+          <FilterPanel />
           {loading ? (
             <div className="text-center py-4">Loading auctions...</div>
           ) : displayedLots.length === 0 ? (
@@ -355,9 +486,9 @@ const DashboardPage = () => {
                   <div
                     key={lot.id}
                     className={`p-3 flex items-center justify-center text-white font-bold rounded-lg 
-        ${showSoldLots ? 'bg-gray-700 cursor-pointer' : 'bg-green-900 cursor-pointer'}
-        ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
-                    onClick={() => handleLotSelect(lot)} // Updated to handle both sold and unsold lots
+      ${showSoldLots ? 'bg-gray-700 cursor-pointer' : 'bg-green-900 cursor-pointer'}
+      ${selectedLot?.id === lot.id ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => handleLotSelect(lot)}
                   >
                     <div className="text-center">
                       <div className="text-xl">{lot.number}</div>
@@ -367,16 +498,34 @@ const DashboardPage = () => {
                           {new Date(lot.soldAt.seconds * 1000).toLocaleDateString()}
                         </div>
                       )}
-                      {showSoldLots && lot.paymentCompleted && (
-                        <div className="text-xs mt-1 text-green-300">Paid</div>
-                      )}
-                      {showSoldLots && !lot.paymentCompleted && (
-                        <div className="text-xs mt-1 text-red-300">Unpaid</div>
+                      {showSoldLots && (
+                        <div className="text-xs mt-1">
+                          {lot.paymentCompleted ? (
+                            <span className="text-green-300">Paid</span>
+                          ) : (
+                            <span className="text-red-300">Unpaid</span>
+                          )}
+                          <div className="flex space-x-1 mt-1 justify-center">
+                            <button
+                              onClick={(e) => navigateToBidHistory(lot.id, e)}
+                              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+                            >
+                              Bids
+                            </button>
+                            <button
+                              onClick={(e) => navigateToReceipt(lot.id, e)}
+                              className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                            >
+                              Receipt
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
+
 
               {selectedLot && !showSoldLots && (
                 <div className="border border-gray-300 rounded-lg p-4 relative">

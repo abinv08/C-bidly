@@ -31,7 +31,7 @@ const LoginForm = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (email.toLowerCase() === 'admin' && pass === '12345678') {
+    if (email.toLowerCase() === 'cbadmin@gmail.com' && pass === '12345678') {
       toast.success("Admin Login Successful", { position: "top-center" });
       sessionStorage.setItem('isAdmin', 'true');
       navigate("/DashboardPage");
